@@ -22,7 +22,7 @@ L{HostKeys}
 
 import base64
 from Crypto.Hash import SHA, HMAC
-import UserDict
+import collections
 
 from paramiko.common import *
 from paramiko.dsskey import DSSKey
@@ -88,7 +88,7 @@ class HostKeyEntry:
         return '<HostKeyEntry %r: %r>' % (self.hostnames, self.key)
 
 
-class HostKeys (UserDict.DictMixin):
+class HostKeys (collections.MutableMapping):
     """
     Representation of an openssh-style "known hosts" file.  Host keys can be
     read from one or more files, and then individual hosts can be looked up to
@@ -189,7 +189,7 @@ class HostKeys (UserDict.DictMixin):
         @return: keys associated with this host (or C{None})
         @rtype: dict(str, L{PKey})
         """
-        class SubDict (UserDict.DictMixin):
+        class SubDict (collections.MutableMapping):
             def __init__(self, hostname, entries, hostkeys):
                 self._hostname = hostname
                 self._entries = entries
@@ -215,8 +215,14 @@ class HostKeys (UserDict.DictMixin):
                     self._entries.append(e)
                     self._hostkeys._entries.append(e)
 
-            def keys(self):
-                return [e.key.get_name() for e in self._entries if e.key is not None]
+            def __delitem__(self, key):
+                raise KeyError
+
+            def __len__(self):
+                return len(list(self.__iter__()))
+
+            def __iter__(self):
+                return (e.key.get_name() for e in self._entries if e.key is not None)
 
         entries = []
         for e in self._entries:
@@ -275,20 +281,20 @@ class HostKeys (UserDict.DictMixin):
             if not found:
                 self._entries.append(HostKeyEntry([hostname], entry[key_type]))
 
-    def keys(self):
+    def __delitem__(self, key):
+        raise KeyError
+
+    def __len__(self):
+        return len(list(self.__iter__()))
+
+    def __iter__(self):
         # python 2.4 sets would be nice here.
         ret = []
         for e in self._entries:
             for h in e.hostnames:
                 if h not in ret:
                     ret.append(h)
-        return ret
-
-    def values(self):
-        ret = []
-        for k in self.iterkeys():
-            ret.append(self.lookup(k))
-        return ret
+                    yield h
 
     def hash_host(hostname, salt=None):
         """
