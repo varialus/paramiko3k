@@ -610,7 +610,7 @@ class Transport (threading.Thread):
         self.active = False
         self.packetizer.close()
         self.join()
-        for chan in self._channels.itervalues():
+        for chan in self._channels.values():
             chan._unlink()
 
     def get_remote_server_key(self):
@@ -1581,7 +1581,7 @@ class Transport (threading.Thread):
             self._log(ERROR, util.tb_strings())
             self.saved_exception = e
         _active_threads.remove(self)
-        for chan in self._channels.itervalues():
+        for chan in self._channels.values():
             chan._unlink()
         if self.active:
             self.active = False
