@@ -355,7 +355,7 @@ class TransportTest (unittest.TestCase):
         schan.send('hello\n')
         
         # something should be ready now (give it 1 second to appear)
-        for i in range(10):
+        for i in xrange(10):
             r, w, e = select.select([chan], [], [], 0.1)
             if chan in r:
                 break
@@ -375,7 +375,7 @@ class TransportTest (unittest.TestCase):
         schan.close()
         
         # detect eof?
-        for i in range(10):
+        for i in xrange(10):
             r, w, e = select.select([chan], [], [], 0.1)
             if chan in r:
                 break
@@ -403,7 +403,7 @@ class TransportTest (unittest.TestCase):
         schan = self.ts.accept(1.0)
 
         self.assertEquals(self.tc.H, self.tc.session_id)
-        for i in range(20):
+        for i in xrange(20):
             chan.send('x' * 1024)
         chan.close()
         
@@ -556,7 +556,7 @@ class TransportTest (unittest.TestCase):
         schan.send_stderr('hello\n')
         
         # something should be ready now (give it 1 second to appear)
-        for i in range(10):
+        for i in xrange(10):
             r, w, e = select.select([chan], [], [], 0.1)
             if chan in r:
                 break

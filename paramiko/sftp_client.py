@@ -184,7 +184,7 @@ class SFTPClient (BaseSFTP):
             if t != CMD_NAME:
                 raise SFTPError('Expected name response')
             count = msg.get_int()
-            for i in range(count):
+            for i in xrange(count):
                 filename = _to_unicode(msg.get_string())
                 longname = _to_unicode(msg.get_string())
                 attr = SFTPAttributes._from_msg(msg, filename, longname)

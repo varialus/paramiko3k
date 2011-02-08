@@ -107,7 +107,7 @@ class SFTPFile (BufferedFile):
         return None.  this guarantees nothing about the number of bytes
         collected in the prefetch buffer so far.
         """
-        k = [i for i in self._prefetch_data.keys() if i <= offset]
+        k = [i for i in self._prefetch_data.iterkeys() if i <= offset]
         if len(k) == 0:
             return None
         index = max(k)

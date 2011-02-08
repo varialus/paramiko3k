@@ -64,7 +64,7 @@ class BigSFTPTest (unittest.TestCase):
         sftp = get_sftp()
         numfiles = 100
         try:
-            for i in range(numfiles):
+            for i in xrange(numfiles):
                 f = sftp.open('%s/file%d.txt' % (FOLDER, i), 'w', 1)
                 f.write('this is file #%d.\n' % i)
                 f.close()
@@ -80,7 +80,7 @@ class BigSFTPTest (unittest.TestCase):
                 f.close()
                 numlist.remove(r)
         finally:
-            for i in range(numfiles):
+            for i in xrange(numfiles):
                 try:
                     sftp.remove('%s/file%d.txt' % (FOLDER, i))
                 except:
@@ -95,7 +95,7 @@ class BigSFTPTest (unittest.TestCase):
         start = time.time()
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')
@@ -108,7 +108,7 @@ class BigSFTPTest (unittest.TestCase):
             
             start = time.time()
             f = sftp.open('%s/hongry.txt' % FOLDER, 'r')
-            for n in range(1024):
+            for n in xrange(1024):
                 data = f.read(1024)
                 self.assertEqual(data, kblob)
             f.close()
@@ -128,7 +128,7 @@ class BigSFTPTest (unittest.TestCase):
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
             f.set_pipelined(True)
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')
@@ -168,7 +168,7 @@ class BigSFTPTest (unittest.TestCase):
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
             f.set_pipelined(True)
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')
@@ -206,7 +206,7 @@ class BigSFTPTest (unittest.TestCase):
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
             f.set_pipelined(True)
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')
@@ -249,7 +249,7 @@ class BigSFTPTest (unittest.TestCase):
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
             f.set_pipelined(True)
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')
@@ -258,12 +258,12 @@ class BigSFTPTest (unittest.TestCase):
 
             self.assertEqual(sftp.stat('%s/hongry.txt' % FOLDER).st_size, 1024 * 1024)
 
-            for i in range(10):
+            for i in xrange(10):
                 f = sftp.open('%s/hongry.txt' % FOLDER, 'r')
                 f.prefetch()
             f = sftp.open('%s/hongry.txt' % FOLDER, 'r')
             f.prefetch()
-            for n in range(1024):
+            for n in xrange(1024):
                 data = f.read(1024)
                 self.assertEqual(data, kblob)
                 if n % 128 == 0:
@@ -282,7 +282,7 @@ class BigSFTPTest (unittest.TestCase):
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
             f.set_pipelined(True)
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')
@@ -299,7 +299,7 @@ class BigSFTPTest (unittest.TestCase):
             chunk_size = 793
             base_offset = 512 * 1024
             k2blob = kblob + kblob
-            chunks = [(base_offset + (chunk_size * i), chunk_size) for i in range(20)]
+            chunks = [(base_offset + (chunk_size * i), chunk_size) for i in xrange(20)]
             for data in f.readv(chunks):
                 offset = base_offset % 1024
                 self.assertEqual(chunk_size, len(data))
@@ -321,7 +321,7 @@ class BigSFTPTest (unittest.TestCase):
         try:
             f = sftp.open('%s/hongry.txt' % FOLDER, 'w')
             f.set_pipelined(True)
-            for n in range(1024):
+            for n in xrange(1024):
                 f.write(kblob)
                 if n % 128 == 0:
                     sys.stderr.write('.')

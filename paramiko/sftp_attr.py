@@ -114,7 +114,7 @@ class SFTPAttributes (object):
             self.st_mtime = msg.get_int()
         if self._flags & self.FLAG_EXTENDED:
             count = msg.get_int()
-            for i in range(count):
+            for i in xrange(count):
                 self.attr[msg.get_string()] = msg.get_string()
 
     def _pack(self, msg):

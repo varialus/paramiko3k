@@ -31,7 +31,7 @@ from paramiko.pkey import PKey
 
 
 SSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER, \
-    SSH2_AGENTC_SIGN_REQUEST, SSH2_AGENT_SIGN_RESPONSE = range(11, 15)
+    SSH2_AGENTC_SIGN_REQUEST, SSH2_AGENT_SIGN_RESPONSE = xrange(11, 15)
 
 
 class Agent:
@@ -78,7 +78,7 @@ class Agent:
         if ptype != SSH2_AGENT_IDENTITIES_ANSWER:
             raise SSHException('could not get keys from ssh-agent')
         keys = []
-        for i in range(result.get_int()):
+        for i in xrange(result.get_int()):
             keys.append(AgentKey(self, result.get_string()))
             result.get_string()
         self.keys = tuple(keys)

@@ -387,7 +387,7 @@ class AuthHandler (object):
         m.get_string()  # lang
         prompts = m.get_int()
         prompt_list = []
-        for i in range(prompts):
+        for i in xrange(prompts):
             prompt_list.append((m.get_string(), m.get_boolean()))
         response_list = self.interactive_handler(title, instructions, prompt_list)
         
@@ -403,7 +403,7 @@ class AuthHandler (object):
             raise SSHException('Illegal info response from server')
         n = m.get_int()
         responses = []
-        for i in range(n):
+        for i in xrange(n):
             responses.append(m.get_string())
         result = self.transport.server_object.check_auth_interactive_response(responses)
         if isinstance(type(result), InteractiveQuery):

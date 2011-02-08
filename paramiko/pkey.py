@@ -374,7 +374,7 @@ class PKey (object):
         s = base64.encodestring(data)
         # re-wrap to 64-char lines
         s = ''.join(s.split('\n'))
-        s = '\n'.join([s[i : i+64] for i in range(0, len(s), 64)])
+        s = '\n'.join([s[i : i+64] for i in xrange(0, len(s), 64)])
         f.write(s)
         f.write('\n')
         f.write('-----END %s PRIVATE KEY-----\n' % tag)

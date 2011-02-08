@@ -265,7 +265,7 @@ class HostKeys (UserDict.DictMixin):
         if len(entry) == 0:
             self._entries.append(HostKeyEntry([hostname], None))
             return
-        for key_type in entry.keys():
+        for key_type in entry.iterkeys():
             found = False
             for e in self._entries:
                 if (hostname in e.hostnames) and (e.key.get_name() == key_type):
@@ -286,7 +286,7 @@ class HostKeys (UserDict.DictMixin):
 
     def values(self):
         ret = []
-        for k in self.keys():
+        for k in self.iterkeys():
             ret.append(self.lookup(k))
         return ret
 

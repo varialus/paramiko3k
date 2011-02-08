@@ -610,7 +610,7 @@ class Transport (threading.Thread):
         self.active = False
         self.packetizer.close()
         self.join()
-        for chan in self._channels.values():
+        for chan in self._channels.itervalues():
             chan._unlink()
 
     def get_remote_server_key(self):
@@ -1581,7 +1581,7 @@ class Transport (threading.Thread):
             self._log(ERROR, util.tb_strings())
             self.saved_exception = e
         _active_threads.remove(self)
-        for chan in self._channels.values():
+        for chan in self._channels.itervalues():
             chan._unlink()
         if self.active:
             self.active = False
@@ -1590,7 +1590,7 @@ class Transport (threading.Thread):
                 self.completion_event.set()
             if self.auth_handler is not None:
                 self.auth_handler.abort()
-            for event in self.channel_events.values():
+            for event in self.channel_events.itervalues():
                 event.set()
             try:
                 self.lock.acquire()
@@ -1618,7 +1618,7 @@ class Transport (threading.Thread):
 
     def _check_banner(self):
         # this is slow, but we only have to do it once
-        for i in range(100):
+        for i in xrange(100):
             # give them 15 seconds for the first line, then just 2 seconds
             # each additional line.  (some sites have very high latency.)
             if i == 0:

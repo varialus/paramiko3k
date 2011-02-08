@@ -56,7 +56,7 @@ def inflate_long(s, always_positive=False):
         if negative:
             filler = '\xff'
         s = filler * (4 - len(s) % 4) + s
-    for i in range(0, len(s), 4):
+    for i in xrange(0, len(s), 4):
         out = (out << 32) + struct.unpack('>I', s[i:i+4])[0]
     if negative:
         out -= (1L << (8 * len(s)))

@@ -92,7 +92,7 @@ from hostkeys import HostKeys
 from config import SSHConfig
 
 # fix module names for epydoc
-for c in locals().values():
+for c in locals().itervalues():
     if issubclass(type(c), type) or type(c).__name__ == 'classobj':
         # classobj for exceptions :/
         c.__module__ = __name__
