@@ -20,7 +20,7 @@
 BufferedFile.
 """
 
-from cStringIO import StringIO
+from io import StringIO
 
 
 class BufferedFile (object):
@@ -92,7 +92,7 @@ class BufferedFile (object):
         self._wbuffer = StringIO()
         return
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next line from the input, or raises L{StopIteration} when
         EOF is hit.  Unlike python file objects, it's okay to mix calls to

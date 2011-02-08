@@ -303,7 +303,7 @@ class PKey (object):
         # if we trudged to the end of the file, just try to cope.
         try:
             data = base64.decodestring(''.join(lines[start:end]))
-        except base64.binascii.Error, e:
+        except base64.binascii.Error as e:
             raise SSHException('base64 decoding error: ' + str(e))
         if 'proc-type' not in headers:
             # unencryped: done
@@ -345,9 +345,9 @@ class PKey (object):
 
         @raise IOError: if there was an error writing the file.
         """
-        f = open(filename, 'w', 0600)
+        f = open(filename, 'w', 0o600)
         # grrr... the mode doesn't always take hold
-        os.chmod(filename, 0600)
+        os.chmod(filename, 0o600)
         self._write_private_key(tag, f, data, password)
         f.close()
     
@@ -355,7 +355,7 @@ class PKey (object):
         f.write('-----BEGIN %s PRIVATE KEY-----\n' % tag)
         if password is not None:
             # since we only support one cipher here, use it
-            cipher_name = self._CIPHER_TABLE.keys()[0]
+            cipher_name = list(self._CIPHER_TABLE.keys())[0]
             cipher = self._CIPHER_TABLE[cipher_name]['cipher']
             keysize = self._CIPHER_TABLE[cipher_name]['keysize']
             blocksize = self._CIPHER_TABLE[cipher_name]['blocksize']
@@ -374,7 +374,7 @@ class PKey (object):
         s = base64.encodestring(data)
         # re-wrap to 64-char lines
         s = ''.join(s.split('\n'))
-        s = '\n'.join([s[i : i+64] for i in xrange(0, len(s), 64)])
+        s = '\n'.join([s[i : i+64] for i in range(0, len(s), 64)])
         f.write(s)
         f.write('\n')
         f.write('-----END %s PRIVATE KEY-----\n' % tag)

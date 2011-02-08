@@ -55,14 +55,14 @@ def _open_winrandom():
     try:
         r0 = _winrandom.new()
         r1 = _winrandom.new()
-    except Exception, exc:
+    except Exception as exc:
         raise error("winrandom.new() failed: %s" % str(exc), exc)
     
     # Check that we can read from the winrandom module
     try:
         x = r0.get_bytes(20)
         y = r1.get_bytes(20)
-    except Exception, exc:
+    except Exception as exc:
         raise error("winrandom get_bytes failed: %s" % str(exc), exc)
 
     # Check that the requested number of bytes are returned
@@ -83,7 +83,7 @@ def _open_urandom():
     try:
         x = _urandom(20)
         y = _urandom(20)
-    except Exception, exc:
+    except Exception as exc:
         raise error("os.urandom failed: %s" % str(exc), exc)
 
     # Check that the requested number of bytes are returned

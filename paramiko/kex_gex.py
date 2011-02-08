@@ -32,7 +32,7 @@ from paramiko.ssh_exception import SSHException
 
 
 _MSG_KEXDH_GEX_REQUEST_OLD, _MSG_KEXDH_GEX_GROUP, _MSG_KEXDH_GEX_INIT, \
-    _MSG_KEXDH_GEX_REPLY, _MSG_KEXDH_GEX_REQUEST = xrange(30, 35)
+    _MSG_KEXDH_GEX_REPLY, _MSG_KEXDH_GEX_REQUEST = range(30, 35)
 
 
 class KexGex (object):

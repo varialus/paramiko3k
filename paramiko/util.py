@@ -20,7 +20,7 @@
 Useful functions used by the rest of paramiko.
 """
 
-from __future__ import generators
+
 
 import array
 from binascii import hexlify, unhexlify
@@ -47,7 +47,7 @@ if sys.version_info < (2,3):
 
 def inflate_long(s, always_positive=False):
     "turns a normalized byte string into a long-int (adapted from Crypto.Util.number)"
-    out = 0L
+    out = 0
     negative = 0
     if not always_positive and (len(s) > 0) and (ord(s[0]) >= 0x80):
         negative = 1
@@ -56,19 +56,19 @@ def inflate_long(s, always_positive=False):
         if negative:
             filler = '\xff'
         s = filler * (4 - len(s) % 4) + s
-    for i in xrange(0, len(s), 4):
+    for i in range(0, len(s), 4):
         out = (out << 32) + struct.unpack('>I', s[i:i+4])[0]
     if negative:
-        out -= (1L << (8 * len(s)))
+        out -= (1 << (8 * len(s)))
     return out
 
 def deflate_long(n, add_sign_padding=True):
     "turns a long-int into a normalized byte string (adapted from Crypto.Util.number)"
     # after much testing, this algorithm was deemed to be the fastest
     s = ''
-    n = long(n)
+    n = int(n)
     while (n != 0) and (n != -1):
-        s = struct.pack('>I', n & 0xffffffffL) + s
+        s = struct.pack('>I', n & 0xffffffff) + s
         n = n >> 32
     # strip off leading zeros, FFs
     for i in enumerate(s):
@@ -273,7 +273,7 @@ def get_logger(name):
 
 class Counter (object):
     """Stateful counter for CTR mode crypto"""
-    def __init__(self, nbits, initial_value=1L, overflow=0L):
+    def __init__(self, nbits, initial_value=1, overflow=0):
         self.blocksize = nbits / 8
         self.overflow = overflow
         # start with value - 1 so we don't have to store intermediate values when counting
@@ -297,6 +297,6 @@ class Counter (object):
         self.value = array.array('c', '\x00' * (self.blocksize - len(x)) + x)
         return self.value.tostring()
 
-    def new(cls, nbits, initial_value=1L, overflow=0L):
+    def new(cls, nbits, initial_value=1, overflow=0):
         return cls(nbits, initial_value=initial_value, overflow=overflow)
     new = classmethod(new)

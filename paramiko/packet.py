@@ -89,8 +89,8 @@ class Packetizer (object):
         self.__mac_key_in = ''
         self.__compress_engine_out = None
         self.__compress_engine_in = None
-        self.__sequence_number_out = 0L
-        self.__sequence_number_in = 0L
+        self.__sequence_number_out = 0
+        self.__sequence_number_in = 0
 
         # lock around outbound writes (packet computation)
         self.__write_lock = threading.RLock()
@@ -212,7 +212,7 @@ class Packetizer (object):
                 n -= len(x)
             except socket.timeout:
                 got_timeout = True
-            except socket.error, e:
+            except socket.error as e:
                 # on Linux, sometimes instead of socket.timeout, we get
                 # EAGAIN.  this is a bug in recent (> 2.6.9) kernels but
                 # we need to work around it.
@@ -241,7 +241,7 @@ class Packetizer (object):
                 n = self.__socket.send(out)
             except socket.timeout:
                 got_timeout = True
-            except socket.error, e:
+            except socket.error as e:
                 if (type(e.args) is tuple) and (len(e.args) > 0) and (e.args[0] == errno.EAGAIN):
                     got_timeout = True
                 elif (type(e.args) is tuple) and (len(e.args) > 0) and (e.args[0] == errno.EINTR):
@@ -306,7 +306,7 @@ class Packetizer (object):
             if self.__block_engine_out != None:
                 payload = struct.pack('>I', self.__sequence_number_out) + packet
                 out += compute_hmac(self.__mac_key_out, payload, self.__mac_engine_out)[:self.__mac_size_out]
-            self.__sequence_number_out = (self.__sequence_number_out + 1) & 0xffffffffL
+            self.__sequence_number_out = (self.__sequence_number_out + 1) & 0xffffffff
             self.write_all(out)
 
             self.__sent_bytes += len(out)
@@ -368,7 +368,7 @@ class Packetizer (object):
 
         msg = Message(payload[1:])
         msg.seqno = self.__sequence_number_in
-        self.__sequence_number_in = (self.__sequence_number_in + 1) & 0xffffffffL
+        self.__sequence_number_in = (self.__sequence_number_in + 1) & 0xffffffff
 
         # check for rekey
         self.__received_bytes += packet_size + self.__mac_size_in + 4

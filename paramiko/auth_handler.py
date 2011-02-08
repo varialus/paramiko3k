@@ -198,7 +198,7 @@ class AuthHandler (object):
             if self.auth_method == 'password':
                 m.add_boolean(False)
                 password = self.password
-                if isinstance(password, unicode):
+                if isinstance(password, str):
                     password = password.encode('UTF-8')
                 m.add_string(password)
             elif self.auth_method == 'publickey':
@@ -308,7 +308,7 @@ class AuthHandler (object):
             keyblob = m.get_string()
             try:
                 key = self.transport._key_info[keytype](Message(keyblob))
-            except SSHException, e:
+            except SSHException as e:
                 self.transport._log(INFO, 'Auth rejected: public key: %s' % str(e))
                 key = None
             except:
@@ -387,7 +387,7 @@ class AuthHandler (object):
         m.get_string()  # lang
         prompts = m.get_int()
         prompt_list = []
-        for i in xrange(prompts):
+        for i in range(prompts):
             prompt_list.append((m.get_string(), m.get_boolean()))
         response_list = self.interactive_handler(title, instructions, prompt_list)
         
@@ -403,7 +403,7 @@ class AuthHandler (object):
             raise SSHException('Illegal info response from server')
         n = m.get_int()
         responses = []
-        for i in xrange(n):
+        for i in range(n):
             responses.append(m.get_string())
         result = self.transport.server_object.check_auth_interactive_response(responses)
         if isinstance(type(result), InteractiveQuery):

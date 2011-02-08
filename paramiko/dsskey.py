@@ -93,7 +93,7 @@ class DSSKey (PKey):
 
     def sign_ssh_data(self, rpool, data):
         digest = SHA.new(data).digest()
-        dss = DSA.construct((long(self.y), long(self.g), long(self.p), long(self.q), long(self.x)))
+        dss = DSA.construct((int(self.y), int(self.g), int(self.p), int(self.q), int(self.x)))
         # generate a suitable k
         qsize = len(util.deflate_long(self.q, 0))
         while True:
@@ -128,7 +128,7 @@ class DSSKey (PKey):
         sigS = util.inflate_long(sig[20:], 1)
         sigM = util.inflate_long(SHA.new(data).digest(), 1)
 
-        dss = DSA.construct((long(self.y), long(self.g), long(self.p), long(self.q)))
+        dss = DSA.construct((int(self.y), int(self.g), int(self.p), int(self.q)))
         return dss.verify(sigM, (sigR, sigS))
 
     def _encode_key(self):
@@ -185,7 +185,7 @@ class DSSKey (PKey):
         # DSAPrivateKey = { version = 0, p, q, g, y, x }
         try:
             keylist = BER(data).decode()
-        except BERException, x:
+        except BERException as x:
             raise SSHException('Unable to parse key file: ' + str(x))
         if (type(keylist) is not list) or (len(keylist) < 6) or (keylist[0] != 0):
             raise SSHException('not a valid DSA private key file (bad ber encoding)')

@@ -271,7 +271,7 @@ class HostKeys (collections.MutableMapping):
         if len(entry) == 0:
             self._entries.append(HostKeyEntry([hostname], None))
             return
-        for key_type in entry.iterkeys():
+        for key_type in entry.keys():
             found = False
             for e in self._entries:
                 if (hostname in e.hostnames) and (e.key.get_name() == key_type):
