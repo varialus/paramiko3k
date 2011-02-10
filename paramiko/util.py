@@ -49,7 +49,7 @@ def inflate_long(s, always_positive=False):
     "turns a normalized bytes into a long-int (adapted from Crypto.Util.number)"
     out = 0
     negative = 0
-    if not always_positive and (len(s) > 0) and (ord(s[0]) >= 0x80):
+    if not always_positive and (len(s) > 0) and (ord(s[0:1]) >= 0x80):
         negative = 1
     if len(s) % 4:
         filler = b'\x00'
@@ -85,16 +85,16 @@ def deflate_long(n, add_sign_padding=True):
             s = b'\xff'
     s = s[i[0]:]
     if add_sign_padding:
-        if (n == 0) and (ord(s[0]) >= 0x80):
+        if (n == 0) and (ord(s[0:1]) >= 0x80):
             s = '\x00' + s
-        if (n == -1) and (ord(s[0]) < 0x80):
+        if (n == -1) and (ord(s[0:1]) < 0x80):
             s = '\xff' + s
     return s
 
 def format_binary_weird(data):
-    out = ''
+    out = b''
     for i in enumerate(data):
-        out += '%02X' % ord(i[1])
+        out += '%02X' % ord(i[1:1])
         if i[0] % 2:
             out += ' '
         if i[0] % 16 == 15:
@@ -112,9 +112,9 @@ def format_binary(data, prefix=''):
     return [prefix + x for x in out]
 
 def format_binary_line(data):
-    left = ' '.join(['%02X' % ord(c) for c in data])
-    right = ''.join([('.%c..' % c)[(ord(c)+63)//95] for c in data])
-    return '%-50s %s' % (left, right)
+    left = b' '.join(['%02X' % ord(c) for c in data])
+    right = b''.join([('.%c..' % c)[(ord(c)+63)//95] for c in data])
+    return b'%-50s %s' % (left, right)
 
 def hexify(s):
     return hexlify(s).upper()
@@ -135,7 +135,7 @@ def safe_string(s):
 
 def bit_length(n):
     norm = deflate_long(n, 0)
-    hbyte = ord(norm[0])
+    hbyte = ord(norm[0:1])
     if hbyte == 0:
         return 1
     bitlen = len(norm) * 8

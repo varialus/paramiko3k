@@ -29,7 +29,7 @@ class BER(object):
     Robey's tiny little attempt at a BER decoder.
     """
 
-    def __init__(self, content=''):
+    def __init__(self, content=b''):
         self.content = content
         self.idx = 0
 
@@ -45,13 +45,13 @@ class BER(object):
     def decode_next(self):
         if self.idx >= len(self.content):
             return None
-        ident = ord(self.content[self.idx])
+        ident = ord(self.content[self.idx:self.idx+1])
         self.idx += 1
         if (ident & 31) == 31:
             # identifier > 30
             ident = 0
             while self.idx < len(self.content):
-                t = ord(self.content[self.idx])
+                t = ord(self.content[self.idx:self.idx+1])
                 self.idx += 1
                 ident = (ident << 7) | (t & 0x7f)
                 if not (t & 0x80):
@@ -59,7 +59,7 @@ class BER(object):
         if self.idx >= len(self.content):
             return None
         # now fetch length
-        size = ord(self.content[self.idx])
+        size = ord(self.content[self.idx:self.idx+1])
         self.idx += 1
         if size & 0x80:
             # more complimicated...
