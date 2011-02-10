@@ -31,7 +31,7 @@ from paramiko.common import *
 from paramiko import util
 from paramiko.ssh_exception import SSHException
 from paramiko.message import Message
-
+from paramiko.pycompat import byt
 
 got_r_hmac = False
 try:
@@ -480,7 +480,7 @@ class Packetizer (object):
         else:
             # cute trick i caught openssh doing: if we're not encrypting,
             # don't waste random bytes for the padding
-            packet += (chr(0) * padding)
+            packet += (byt(0) * padding)
         return packet
 
     def _trigger_rekey(self):

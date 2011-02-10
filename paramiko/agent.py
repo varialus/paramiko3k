@@ -28,7 +28,7 @@ import sys
 from paramiko.ssh_exception import SSHException
 from paramiko.message import Message
 from paramiko.pkey import PKey
-
+from paramiko.pycompat import byt
 
 SSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER, \
     SSH2_AGENTC_SIGN_REQUEST, SSH2_AGENT_SIGN_RESPONSE = range(11, 15)
@@ -74,7 +74,7 @@ class Agent:
             # no agent support
             return
             
-        ptype, result = self._send_message(chr(SSH2_AGENTC_REQUEST_IDENTITIES))
+        ptype, result = self._send_message(byt(SSH2_AGENTC_REQUEST_IDENTITIES))
         if ptype != SSH2_AGENT_IDENTITIES_ANSWER:
             raise SSHException('could not get keys from ssh-agent')
         keys = []
@@ -141,7 +141,7 @@ class AgentKey(PKey):
 
     def sign_ssh_data(self, randpool, data):
         msg = Message()
-        msg.add_byte(chr(SSH2_AGENTC_SIGN_REQUEST))
+        msg.add_byte(byt(SSH2_AGENTC_SIGN_REQUEST))
         msg.add_string(self.blob)
         msg.add_string(data)
         msg.add_int(0)

@@ -43,6 +43,7 @@ from paramiko.rsakey import RSAKey
 from paramiko.server import ServerInterface
 from paramiko.sftp_client import SFTPClient
 from paramiko.ssh_exception import SSHException, BadAuthenticationType, ChannelException
+from paramiko.pycompat import byt
 
 # these come from PyCrypt
 #     http://www.amk.ca/python/writing/pycrypt/
@@ -713,7 +714,7 @@ class Transport (threading.Thread):
         try:
             chanid = self._next_channel()
             m = Message()
-            m.add_byte(chr(MSG_CHANNEL_OPEN))
+            m.add_byte(byt(MSG_CHANNEL_OPEN))
             m.add_string(kind)
             m.add_int(chanid)
             m.add_int(self.window_size)
@@ -839,7 +840,7 @@ class Transport (threading.Thread):
         @type bytes: int
         """
         m = Message()
-        m.add_byte(chr(MSG_IGNORE))
+        m.add_byte(byt(MSG_IGNORE))
         randpool.stir()
         if bytes is None:
             bytes = (ord(randpool.get_bytes(1)) % 32) + 10
@@ -906,7 +907,7 @@ class Transport (threading.Thread):
         if wait:
             self.completion_event = threading.Event()
         m = Message()
-        m.add_byte(chr(MSG_GLOBAL_REQUEST))
+        m.add_byte(byt(MSG_GLOBAL_REQUEST))
         m.add_string(kind)
         m.add_boolean(wait)
         if data is not None:
@@ -1562,7 +1563,7 @@ class Transport (threading.Thread):
                 else:
                     self._log(WARNING, 'Oops, unhandled type %d' % ptype)
                     msg = Message()
-                    msg.add_byte(chr(MSG_UNIMPLEMENTED))
+                    msg.add_byte(byt(MSG_UNIMPLEMENTED))
                     msg.add_int(m.seqno)
                     self._send_message(msg)
         except SSHException as e:
@@ -1680,7 +1681,7 @@ class Transport (threading.Thread):
 
         randpool.stir()
         m = Message()
-        m.add_byte(chr(MSG_KEXINIT))
+        m.add_byte(byt(MSG_KEXINIT))
         m.add_bytes(randpool.get_bytes(16))
         m.add_list(self._preferred_kex)
         m.add_list(available_server_keys)
@@ -1793,7 +1794,7 @@ class Transport (threading.Thread):
         # actually some extra bytes (one NUL byte in openssh's case) added to
         # the end of the packet but not parsed.  turns out we need to throw
         # away those bytes because they aren't part of the hash.
-        self.remote_kex_init = chr(MSG_KEXINIT) + m.get_so_far()
+        self.remote_kex_init = byt(MSG_KEXINIT) + m.get_so_far()
 
     def _activate_inbound(self):
         "switch on newly negotiated encryption parameters for inbound traffic"
@@ -1920,10 +1921,10 @@ class Transport (threading.Thread):
         if want_reply:
             msg = Message()
             if ok:
-                msg.add_byte(chr(MSG_REQUEST_SUCCESS))
+                msg.add_byte(byt(MSG_REQUEST_SUCCESS))
                 msg.add(*extra)
             else:
-                msg.add_byte(chr(MSG_REQUEST_FAILURE))
+                msg.add_byte(byt(MSG_REQUEST_FAILURE))
             self._send_message(msg)
 
     def _parse_request_success(self, m):
@@ -2029,7 +2030,7 @@ class Transport (threading.Thread):
                 reject = True
         if reject:
             msg = Message()
-            msg.add_byte(chr(MSG_CHANNEL_OPEN_FAILURE))
+            msg.add_byte(byt(MSG_CHANNEL_OPEN_FAILURE))
             msg.add_int(chanid)
             msg.add_int(reason)
             msg.add_string('')
@@ -2048,7 +2049,7 @@ class Transport (threading.Thread):
         finally:
             self.lock.release()
         m = Message()
-        m.add_byte(chr(MSG_CHANNEL_OPEN_SUCCESS))
+        m.add_byte(byt(MSG_CHANNEL_OPEN_SUCCESS))
         m.add_int(chanid)
         m.add_int(my_chanid)
         m.add_int(self.window_size)

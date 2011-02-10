@@ -26,13 +26,13 @@ import paramiko.util
 from paramiko.kex_group1 import KexGroup1
 from paramiko.kex_gex import KexGex
 from paramiko import Message
-
+from paramiko.pycompat import byt
 
 class FakeRandpool (object):
     def stir(self):
         pass
     def get_bytes(self, n):
-        return chr(0xcc) * n
+        return byt(0xcc) * n
 
 
 class FakeKey (object):

@@ -18,7 +18,7 @@
 
 def byt(x):
     """
-    The bytes analog of the chr() function.
+    The bytes analog of the byt() function.
     Returns a bytes of length 1 holding the value x.
     """
     return bytes((x,))

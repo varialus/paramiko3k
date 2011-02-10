@@ -24,7 +24,7 @@ from paramiko.common import *
 from paramiko import util
 from paramiko.channel import Channel
 from paramiko.message import Message
-
+from paramiko.pycompat import byt
 
 CMD_INIT, CMD_VERSION, CMD_OPEN, CMD_CLOSE, CMD_READ, CMD_WRITE, CMD_LSTAT, CMD_FSTAT, \
            CMD_SETSTAT, CMD_FSETSTAT, CMD_OPENDIR, CMD_READDIR, CMD_REMOVE, CMD_MKDIR, \
@@ -166,7 +166,7 @@ class BaseSFTP (object):
 
     def _send_packet(self, t, packet):
         #self._log(DEBUG2, 'write: %s (len=%d)' % (CMD_NAMES.get(t, '0x%02x' % t), len(packet)))
-        out = struct.pack('>I', len(packet) + 1) + chr(t) + packet
+        out = struct.pack('>I', len(packet) + 1) + byt(t) + packet
         if self.ultra_debug:
             self._log(DEBUG, util.format_binary(out, 'OUT: '))
         self._write_all(out)

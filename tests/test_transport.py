@@ -36,7 +36,7 @@ from paramiko import OPEN_SUCCEEDED, OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 from paramiko.common import MSG_KEXINIT, MSG_CHANNEL_WINDOW_ADJUST
 from paramiko.message import Message
 from loop import LoopSocket
-
+from paramiko.pycompat import byt
 
 LONG_BANNER = """\
 Welcome to the super-fun-land BBS, where our MOTD is the primary thing we
@@ -712,7 +712,7 @@ class TransportTest (unittest.TestCase):
                 # Simulate in-transit MSG_CHANNEL_WINDOW_ADJUST by sending it
                 # before responding to the incoming MSG_KEXINIT.
                 m2 = Message()
-                m2.add_byte(chr(MSG_CHANNEL_WINDOW_ADJUST))
+                m2.add_byte(byt(MSG_CHANNEL_WINDOW_ADJUST))
                 m2.add_int(chan.remote_chanid)
                 m2.add_int(1)    # bytes to add
                 self._send_message(m2)

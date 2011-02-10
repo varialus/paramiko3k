@@ -21,6 +21,7 @@
 import sys
 import threading
 from Crypto.Util.randpool import RandomPool as _RandomPool
+from paramiko.pycompat import byt
 
 try:
     import platform
@@ -29,7 +30,7 @@ except ImportError:
 
 def _strxor(a, b):
     assert len(a) == len(b)
-    return "".join(map(lambda x, y: chr(ord(x) ^ ord(y)), a, b))
+    return "".join(map(lambda x, y: byt(ord(x) ^ ord(y)), a, b))
 
 ##
 ## Find a strong random entropy source, depending on the detected platform.

@@ -24,6 +24,7 @@ from binascii import hexlify, unhexlify
 import io
 import unittest
 from paramiko import RSAKey, DSSKey, Message, util, randpool
+from paramiko.pycompat import byt
 
 # from openssh's ssh-keygen
 PUB_RSA = 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA049W6geFpmsljTwfvI1UmKWWJPNFI74+vNKTk4dmzkQY2yAMs6FhlvhlI8ysU4oj71ZsRYMecHbBbxdN79+JRFVYTKaLqjwGENeTd+yv4q+V2PvZv3fLnzApI3l7EJCqhWwJUHJ1jAkZzqDx0tyOL4uoZpww3nmE0kb3y21tH4c='
@@ -155,7 +156,7 @@ class KeyTest (unittest.TestCase):
         self.assert_(type(msg) is Message)
         msg.rewind()
         self.assertEquals('ssh-rsa', msg.get_string())
-        sig = ''.join([chr(int(x, 16)) for x in SIGNED_RSA.split(':')])
+        sig = ''.join([byt(int(x, 16)) for x in SIGNED_RSA.split(':')])
         self.assertEquals(sig, msg.get_string())
         msg.rewind()
         pub = RSAKey(data=str(key))

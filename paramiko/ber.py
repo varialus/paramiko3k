@@ -18,7 +18,7 @@
 
 
 from . import util
-
+from paramiko.pycompat import byt
 
 class BERException (Exception):
     pass
@@ -98,12 +98,12 @@ class BER(object):
 
     def encode_tlv(self, ident, val):
         # no need to support ident > 31 here
-        self.content += chr(ident)
+        self.content += byt(ident)
         if len(val) > 0x7f:
             lenstr = util.deflate_long(len(val))
-            self.content += chr(0x80 + len(lenstr)) + lenstr
+            self.content += byt(0x80 + len(lenstr)) + lenstr
         else:
-            self.content += chr(len(val))
+            self.content += byt(len(val))
         self.content += val
 
     def encode(self, x):

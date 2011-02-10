@@ -27,7 +27,7 @@ from paramiko.common import *
 from paramiko import util
 from paramiko.message import Message
 from paramiko.ssh_exception import SSHException
-
+from paramiko.pycompat import byt
 
 _MSG_KEXDH_INIT, _MSG_KEXDH_REPLY = range(30, 32)
 
@@ -56,7 +56,7 @@ class KexGroup1(object):
         # compute e = g^x mod p (where g=2), and send it
         self.e = pow(G, self.x, P)
         m = Message()
-        m.add_byte(chr(_MSG_KEXDH_INIT))
+        m.add_byte(byt(_MSG_KEXDH_INIT))
         m.add_mpint(self.e)
         self.transport._send_message(m)
         self.transport._expect_packet(_MSG_KEXDH_REPLY)
@@ -81,7 +81,7 @@ class KexGroup1(object):
         while 1:
             self.transport.randpool.stir()
             x_bytes = self.transport.randpool.get_bytes(128)
-            x_bytes = chr(ord(x_bytes[0]) & 0x7f) + x_bytes[1:]
+            x_bytes = byt(ord(x_bytes[0]) & 0x7f) + x_bytes[1:]
             if (x_bytes[:8] != '\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF') and \
                    (x_bytes[:8] != '\x00\x00\x00\x00\x00\x00\x00\x00'):
                 break
@@ -128,7 +128,7 @@ class KexGroup1(object):
         sig = self.transport.get_server_key().sign_ssh_data(self.transport.randpool, H)
         # send reply
         m = Message()
-        m.add_byte(chr(_MSG_KEXDH_REPLY))
+        m.add_byte(byt(_MSG_KEXDH_REPLY))
         m.add_string(key)
         m.add_mpint(self.f)
         m.add_string(sig.bytes())
