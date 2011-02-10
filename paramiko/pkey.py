@@ -302,7 +302,7 @@ class PKey (object):
             end += 1
         # if we trudged to the end of the file, just try to cope.
         try:
-            data = base64.decodestring(''.join(lines[start:end]))
+            data = base64.decodebytes(''.join(lines[start:end]).encode('ascii'))
         except base64.binascii.Error as e:
             raise SSHException('base64 decoding error: ' + str(e))
         if 'proc-type' not in headers:

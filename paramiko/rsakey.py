@@ -57,18 +57,21 @@ class RSAKey (PKey):
         else:
             if msg is None:
                 raise SSHException('Key object may not be empty')
-            if msg.get_string() != 'ssh-rsa':
+            if msg.get_string() != b'ssh-rsa':
                 raise SSHException('Invalid key')
             self.e = msg.get_mpint()
             self.n = msg.get_mpint()
         self.size = util.bit_length(self.n)
 
     def __str__(self):
+        raise Exception("did you mean to call bytes?") #FIXME remove __str__ after porting
+
+    def bytes(self):
         m = Message()
-        m.add_string('ssh-rsa')
+        m.add_string(b'ssh-rsa')
         m.add_mpint(self.e)
         m.add_mpint(self.n)
-        return str(m)
+        return m.bytes()
 
     def __hash__(self):
         h = hash(self.get_name())
@@ -77,7 +80,7 @@ class RSAKey (PKey):
         return hash(h)
 
     def get_name(self):
-        return 'ssh-rsa'
+        return b'ssh-rsa'
 
     def get_bits(self):
         return self.size
@@ -90,12 +93,12 @@ class RSAKey (PKey):
         rsa = RSA.construct((int(self.n), int(self.e), int(self.d)))
         sig = util.deflate_long(rsa.sign(self._pkcs1imify(digest), '')[0], 0)
         m = Message()
-        m.add_string('ssh-rsa')
+        m.add_string(b'ssh-rsa')
         m.add_string(sig)
         return m
 
     def verify_ssh_sig(self, data, msg):
-        if msg.get_string() != 'ssh-rsa':
+        if msg.get_string() != b'ssh-rsa':
             return False
         sig = util.inflate_long(msg.get_string(), True)
         # verify the signature by SHA'ing the data and encrypting it using the
@@ -155,10 +158,10 @@ class RSAKey (PKey):
         turn a 20-byte SHA1 hash into a blob of data as large as the key's N,
         using PKCS1's \"emsa-pkcs1-v1_5\" encoding.  totally bizarre.
         """
-        SHA1_DIGESTINFO = '\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14'
+        SHA1_DIGESTINFO = b'\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14'
         size = len(util.deflate_long(self.n, 0))
-        filler = '\xff' * (size - len(SHA1_DIGESTINFO) - len(data) - 3)
-        return '\x00\x01' + filler + '\x00' + SHA1_DIGESTINFO + data
+        filler = b'\xff' * (size - len(SHA1_DIGESTINFO) - len(data) - 3)
+        return b'\x00\x01' + filler + b'\x00' + SHA1_DIGESTINFO + data
 
     def _from_private_key_file(self, filename, password):
         data = self._read_private_key_file('RSA', filename, password)

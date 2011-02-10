@@ -43,19 +43,24 @@ class Message (object):
 
         @param content: the byte stream to use as the Message content (passed
             in only when decomposing a Message).
-        @type content: string
+        @type content: bytes
         """
         if content != None:
-            self.packet = io.StringIO(content)
+            self.packet = io.BytesIO(content)
         else:
-            self.packet = io.StringIO()
+            self.packet = io.BytesIO()
 
+    # This is to catch any stray calls to __str__ during porting to py3k
+    # Remove once porting has been completed.
     def __str__(self):
+        raise Exception("Did you mean to call the bytes() method?")
+
+    def bytes(self):
         """
-        Return the byte stream content of this Message, as a string.
+        Return the byte stream content of this Message, as bytes.
 
         @return: the contents of this Message.
-        @rtype: string
+        @rtype: bytes
         """
         return self.packet.getvalue()
 
@@ -123,7 +128,7 @@ class Message (object):
             any bytes remaining.
         @rtype: string
         """
-        return self.get_bytes(1)
+        return self.get_bytes(1)[0]
 
     def get_boolean(self):
         """
@@ -133,7 +138,7 @@ class Message (object):
         @rtype: bool
         """
         b = self.get_bytes(1)
-        return b != '\x00'
+        return b != b'\x00'
 
     def get_int(self):
         """
@@ -181,14 +186,14 @@ class Message (object):
         @return: a list of strings.
         @rtype: list of strings
         """
-        return self.get_string().split(',')
+        return self.get_string().split(b',')
 
     def add_bytes(self, b):
         """
         Write bytes to the stream, without any formatting.
         
         @param b: bytes to add
-        @type b: str
+        @type b: bytes
         """
         self.packet.write(b)
         return self
@@ -267,14 +272,12 @@ class Message (object):
         @param l: list of strings to add
         @type l: list(str)
         """
-        self.add_string(','.join(l))
+        self.add_string(b','.join(l))
         return self
         
     def _add(self, i):
-        if type(i) is str:
+        if type(i) is bytes:
             return self.add_string(i)
-        elif type(i) is int:
-            return self.add_int(i)
         elif type(i) is int:
             if i > 0xffffffff:
                 return self.add_mpint(i)

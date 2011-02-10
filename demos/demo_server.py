@@ -45,7 +45,7 @@ class Server (paramiko.ServerInterface):
            'fAu7jJ2d7eothvfeuoRFtJwhUmZDluRdFyhFY/hFAh76PJKGAusIqIQKlkJxMC' + \
            'KDqIexkgHAfID/6mqvmnSJf0b5W8v5h2pI/stOSwTQ+pxVhwJ9ctYDhRSlF0iT' + \
            'UWT10hcuO4Ks8='
-    good_pub_key = paramiko.RSAKey(data=base64.decodestring(data))
+    good_pub_key = paramiko.RSAKey(data=base64.decodebytes(data))
 
     def __init__(self):
         self.event = threading.Event()

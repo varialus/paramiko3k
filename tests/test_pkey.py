@@ -82,7 +82,7 @@ class KeyTest (unittest.TestCase):
 
     def test_2_load_rsa(self):
         key = RSAKey.from_private_key_file('tests/test_rsa.key')
-        self.assertEquals('ssh-rsa', key.get_name())
+        self.assertEquals(b'ssh-rsa', key.get_name())
         exp_rsa = FINGER_RSA.split()[1].replace(':', '')
         my_rsa = hexlify(key.get_fingerprint())
         self.assertEquals(exp_rsa, my_rsa)
@@ -98,7 +98,7 @@ class KeyTest (unittest.TestCase):
 
     def test_3_load_rsa_password(self):
         key = RSAKey.from_private_key_file('tests/test_rsa_password.key', 'television')
-        self.assertEquals('ssh-rsa', key.get_name())
+        self.assertEquals(b'ssh-rsa', key.get_name())
         exp_rsa = FINGER_RSA.split()[1].replace(':', '')
         my_rsa = hexlify(key.get_fingerprint())
         self.assertEquals(exp_rsa, my_rsa)
@@ -107,7 +107,7 @@ class KeyTest (unittest.TestCase):
         
     def test_4_load_dss(self):
         key = DSSKey.from_private_key_file('tests/test_dss.key')
-        self.assertEquals('ssh-dss', key.get_name())
+        self.assertEquals(b'ssh-dss', key.get_name())
         exp_dss = FINGER_DSS.split()[1].replace(':', '')
         my_dss = hexlify(key.get_fingerprint())
         self.assertEquals(exp_dss, my_dss)

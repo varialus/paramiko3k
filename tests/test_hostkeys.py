@@ -73,7 +73,7 @@ class HostKeysTest (unittest.TestCase):
     def test_2_add(self):
         hostdict = paramiko.HostKeys('hostfile.temp')
         hh = '|1|BMsIC6cUIP2zBuXR3t2LRcJYjzM=|hpkJMysjTk/+zzUUzxQEa2ieq6c='
-        key = paramiko.RSAKey(data=base64.decodestring(keyblob))
+        key = paramiko.RSAKey(data=base64.decodebytes(keyblob))
         hostdict.add(hh, 'ssh-rsa', key)
         self.assertEquals(3, len(hostdict))
         x = hostdict['foo.example.com']
@@ -96,8 +96,8 @@ class HostKeysTest (unittest.TestCase):
         
     def test_4_dict_set(self):
         hostdict = paramiko.HostKeys('hostfile.temp')
-        key = paramiko.RSAKey(data=base64.decodestring(keyblob))
-        key_dss = paramiko.DSSKey(data=base64.decodestring(keyblob_dss))
+        key = paramiko.RSAKey(data=base64.decodebytes(keyblob))
+        key_dss = paramiko.DSSKey(data=base64.decodebytes(keyblob_dss))
         hostdict['secure.example.com'] = {
             'ssh-rsa': key,
             'ssh-dss': key_dss

@@ -109,9 +109,9 @@ class BER(object):
     def encode(self, x):
         if isinstance(x, bool):
             if x:
-                self.encode_tlv(1, '\xff')
+                self.encode_tlv(1, b'\xff')
             else:
-                self.encode_tlv(1, '\x00')
+                self.encode_tlv(1, b'\x00')
         elif isinstance(x, int):
             self.encode_tlv(2, util.deflate_long(x))
         elif isinstance(x, str):

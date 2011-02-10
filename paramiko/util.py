@@ -46,15 +46,15 @@ if sys.version_info < (2,3):
 
 
 def inflate_long(s, always_positive=False):
-    "turns a normalized byte string into a long-int (adapted from Crypto.Util.number)"
+    "turns a normalized bytes into a long-int (adapted from Crypto.Util.number)"
     out = 0
     negative = 0
     if not always_positive and (len(s) > 0) and (ord(s[0]) >= 0x80):
         negative = 1
     if len(s) % 4:
-        filler = '\x00'
+        filler = b'\x00'
         if negative:
-            filler = '\xff'
+            filler = b'\xff'
         s = filler * (4 - len(s) % 4) + s
     for i in range(0, len(s), 4):
         out = (out << 32) + struct.unpack('>I', s[i:i+4])[0]
@@ -63,26 +63,26 @@ def inflate_long(s, always_positive=False):
     return out
 
 def deflate_long(n, add_sign_padding=True):
-    "turns a long-int into a normalized byte string (adapted from Crypto.Util.number)"
+    "turns a long-int into a normalized bytes (adapted from Crypto.Util.number)"
     # after much testing, this algorithm was deemed to be the fastest
-    s = ''
+    s = b''
     n = int(n)
     while (n != 0) and (n != -1):
         s = struct.pack('>I', n & 0xffffffff) + s
         n = n >> 32
     # strip off leading zeros, FFs
     for i in enumerate(s):
-        if (n == 0) and (i[1] != '\000'):
+        if (n == 0) and (i[1] != 0x00):
             break
-        if (n == -1) and (i[1] != '\xff'):
+        if (n == -1) and (i[1] != 0xff):
             break
     else:
         # degenerate case, n was either 0 or -1
         i = (0,)
         if n == 0:
-            s = '\000'
+            s = b'\x00'
         else:
-            s = '\xff'
+            s = b'\xff'
     s = s[i[0]:]
     if add_sign_padding:
         if (n == 0) and (ord(s[0]) >= 0x80):
@@ -165,8 +165,8 @@ def generate_key_bytes(hashclass, salt, key, nbytes):
     @return: key data
     @rtype: string
     """
-    keydata = ''
-    digest = ''
+    keydata = b''
+    digest = b''
     if len(salt) > 8:
         salt = salt[:8]
     while nbytes > 0:

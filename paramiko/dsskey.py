@@ -56,7 +56,7 @@ class DSSKey (PKey):
         else:
             if msg is None:
                 raise SSHException('Key object may not be empty')
-            if msg.get_string() != 'ssh-dss':
+            if msg.get_string() != b'ssh-dss':
                 raise SSHException('Invalid key')
             self.p = msg.get_mpint()
             self.q = msg.get_mpint()
@@ -65,13 +65,16 @@ class DSSKey (PKey):
         self.size = util.bit_length(self.p)
 
     def __str__(self):
+        raise Exception("did you mean to call bytes?") #FIXME remove __str__ after porting
+
+    def bytes(self):
         m = Message()
-        m.add_string('ssh-dss')
+        m.add_string(b'ssh-dss')
         m.add_mpint(self.p)
         m.add_mpint(self.q)
         m.add_mpint(self.g)
         m.add_mpint(self.y)
-        return str(m)
+        return m.bytes()
 
     def __hash__(self):
         h = hash(self.get_name())
@@ -83,7 +86,7 @@ class DSSKey (PKey):
         return hash(h)
 
     def get_name(self):
-        return 'ssh-dss'
+        return b'ssh-dss'
 
     def get_bits(self):
         return self.size
@@ -102,14 +105,14 @@ class DSSKey (PKey):
                 break
         r, s = dss.sign(util.inflate_long(digest, 1), k)
         m = Message()
-        m.add_string('ssh-dss')
+        m.add_string(b'ssh-dss')
         # apparently, in rare cases, r or s may be shorter than 20 bytes!
         rstr = util.deflate_long(r, 0)
         sstr = util.deflate_long(s, 0)
         if len(rstr) < 20:
-            rstr = '\x00' * (20 - len(rstr)) + rstr
+            rstr = b'\x00' * (20 - len(rstr)) + rstr
         if len(sstr) < 20:
-            sstr = '\x00' * (20 - len(sstr)) + sstr
+            sstr = b'\x00' * (20 - len(sstr)) + sstr
         m.add_string(rstr + sstr)
         return m
 
