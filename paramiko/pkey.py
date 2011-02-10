@@ -62,14 +62,14 @@ class PKey (object):
         """
         pass
 
-    def __str__(self):
+    def getvalue(self):
         """
         Return a string of an SSH L{Message} made up of the public part(s) of
         this key.  This string is suitable for passing to L{__init__} to
         re-create the key object later.
 
-        @return: string representation of an SSH key message.
-        @rtype: str
+        @return: bytes representation of an SSH key message.
+        @rtype: bytes
         """
         return ''
 
@@ -130,7 +130,7 @@ class PKey (object):
             format.
         @rtype: str
         """
-        return MD5.new(str(self)).digest()
+        return MD5.new(self.getvalue()).digest()
 
     def get_base64(self):
         """

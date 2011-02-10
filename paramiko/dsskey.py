@@ -67,7 +67,7 @@ class DSSKey (PKey):
     def __str__(self):
         raise Exception("did you mean to call bytes?") #FIXME remove __str__ after porting
 
-    def bytes(self):
+    def getvalue(self):
         m = Message()
         m.add_string(b'ssh-dss')
         m.add_mpint(self.p)

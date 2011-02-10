@@ -25,3 +25,16 @@ def byt(x):
 
 # for Python 2
 #byt=chr
+
+
+def safeord(x):
+    """
+    An ord() function that passes integers through unmodified.
+    
+    This help manage the differences between element accesses on bytes between Python 2 and 3.
+    (Python 3 produces int, Python 2 produces str)
+    """
+    if isinstance(x, int):
+        return x
+    else:
+        return ord(x)

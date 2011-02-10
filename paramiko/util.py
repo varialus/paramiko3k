@@ -86,9 +86,9 @@ def deflate_long(n, add_sign_padding=True):
     s = s[i[0]:]
     if add_sign_padding:
         if (n == 0) and (ord(s[0:1]) >= 0x80):
-            s = '\x00' + s
+            s = b'\x00' + s
         if (n == -1) and (ord(s[0:1]) < 0x80):
-            s = '\xff' + s
+            s = b'\xff' + s
     return s
 
 def format_binary_weird(data):

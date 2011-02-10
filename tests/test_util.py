@@ -26,6 +26,7 @@ import os
 import unittest
 from Crypto.Hash import SHA
 import paramiko.util
+from paramiko.pycompat import byt, safeord
 
 
 test_config_file = """\
@@ -128,8 +129,8 @@ class UtilTest (unittest.TestCase):
         self.assertEquals(c, {'identityfile': '~/.ssh/id_rsa', 'user': 'bjork', 'crazy': 'something else', 'port': '3333'})
 
     def test_4_generate_key_bytes(self):
-        x = paramiko.util.generate_key_bytes(SHA, 'ABCDEFGH', 'This is my secret passphrase.', 64)
-        hex = b''.join(['%02x' %c for c in x])
+        x = paramiko.util.generate_key_bytes(SHA, b'ABCDEFGH', b'This is my secret passphrase.', 64)
+        hex = ''.join(['{0:02x}'.format(safeord(c)) for c in x])
         self.assertEquals(hex, '9110e2f6793b69363e58173e9436b13a5a4b339005741d5c680e505f57d871347b4239f14fb5c46e857d5e100424873ba849ac699cea98d729e57b3e84378e8b')
 
     def test_5_host_keys(self):
@@ -141,7 +142,7 @@ class UtilTest (unittest.TestCase):
             self.assertEquals(2, len(hostdict))
             self.assertEquals(1, len(list(hostdict.values())[0]))
             self.assertEquals(1, len(list(hostdict.values())[1]))
-            fp = hexlify(hostdict['secure.example.com']['ssh-rsa'].get_fingerprint()).upper()
+            fp = hexlify(hostdict['secure.example.com'][b'ssh-rsa'].get_fingerprint()).upper()
             self.assertEquals('E6684DB30E109B67B70FF1DC5C7F1363', fp)
         finally:
             os.unlink('hostfile.temp')

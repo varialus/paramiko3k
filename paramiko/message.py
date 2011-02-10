@@ -190,9 +190,9 @@ class Message (io.BytesIO):
         @type b: bool
         """
         if b:
-            self.add_byte('\x01')
+            self.add_byte(b'\x01')
         else:
-            self.add_byte('\x00')
+            self.add_byte(b'\x00')
         return self
             
     def add_int(self, n):
