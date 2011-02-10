@@ -74,7 +74,7 @@ class DSSKey (PKey):
         m.add_mpint(self.q)
         m.add_mpint(self.g)
         m.add_mpint(self.y)
-        return m.bytes()
+        return m.getvalue()
 
     def __hash__(self):
         h = hash(self.get_name())

@@ -239,6 +239,6 @@ class KexGex (object):
         hm.add_mpint(self.e)
         hm.add_mpint(self.f)
         hm.add_mpint(K)
-        self.transport._set_K_H(K, SHA.new(hm.bytes()).digest())
+        self.transport._set_K_H(K, SHA.new(hm.getvalue()).digest())
         self.transport._verify_key(host_key, sig)
         self.transport._activate_outbound()

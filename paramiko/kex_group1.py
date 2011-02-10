@@ -103,7 +103,7 @@ class KexGroup1(object):
         hm.add_mpint(self.e)
         hm.add_mpint(self.f)
         hm.add_mpint(K)
-        self.transport._set_K_H(K, SHA.new(hm.bytes()).digest())
+        self.transport._set_K_H(K, SHA.new(hm.getvalue()).digest())
         self.transport._verify_key(host_key, sig)
         self.transport._activate_outbound()
 
@@ -113,7 +113,7 @@ class KexGroup1(object):
         if (self.e < 1) or (self.e > P - 1):
             raise SSHException('Client kex "e" is out of range')
         K = pow(self.e, self.x, P)
-        key = self.transport.get_server_key().bytes()
+        key = self.transport.get_server_key().getvalue()
         # okay, build up the hash H of (V_C || V_S || I_C || I_S || K_S || e || f || K)
         hm = Message()
         hm.add(self.transport.remote_version, self.transport.local_version,
@@ -122,7 +122,7 @@ class KexGroup1(object):
         hm.add_mpint(self.e)
         hm.add_mpint(self.f)
         hm.add_mpint(K)
-        H = SHA.new(hm.bytes()).digest()
+        H = SHA.new(hm.getvalue()).digest()
         self.transport._set_K_H(K, H)
         # sign it
         sig = self.transport.get_server_key().sign_ssh_data(self.transport.randpool, H)
@@ -131,6 +131,6 @@ class KexGroup1(object):
         m.add_byte(byt(_MSG_KEXDH_REPLY))
         m.add_string(key)
         m.add_mpint(self.f)
-        m.add_string(sig.bytes())
+        m.add_string(sig.getvalue())
         self.transport._send_message(m)
         self.transport._activate_outbound()

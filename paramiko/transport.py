@@ -1455,13 +1455,13 @@ class Transport (threading.Thread):
         m.add_bytes(self.H)
         m.add_bytes(id)
         m.add_bytes(self.session_id)
-        out = sofar = SHA.new(m.bytes()).digest()
+        out = sofar = SHA.new(m.getvalue()).digest()
         while len(out) < nbytes:
             m = Message()
             m.add_mpint(self.K)
             m.add_bytes(self.H)
             m.add_bytes(sofar)
-            digest = SHA.new(m.bytes()).digest()
+            digest = SHA.new(m.getvalue()).digest()
             out += digest
             sofar += digest
         return out[:nbytes]
@@ -1696,7 +1696,7 @@ class Transport (threading.Thread):
         m.add_boolean(False)
         m.add_int(0)
         # save a copy for later (needed to compute a hash)
-        self.local_kex_init = m.bytes()
+        self.local_kex_init = m.getvalue()
         self._send_message(m)
 
     def _parse_kex_init(self, m):

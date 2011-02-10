@@ -71,7 +71,7 @@ class RSAKey (PKey):
         m.add_string(b'ssh-rsa')
         m.add_mpint(self.e)
         m.add_mpint(self.n)
-        return m.bytes()
+        return m.getvalue()
 
     def __hash__(self):
         h = hash(self.get_name())

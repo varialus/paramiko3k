@@ -26,7 +26,7 @@ import io
 from paramiko import util
 
 
-class Message (object):
+class Message (io.BytesIO):
     """
     An SSH2 I{Message} is a stream of bytes that encodes some combination of
     strings, integers, bools, and infinite-precision integers (known in python
@@ -37,32 +37,6 @@ class Message (object):
     paramiko doesn't support yet.
     """
 
-    def __init__(self, content=None):
-        """
-        Create a new SSH2 Message.
-
-        @param content: the byte stream to use as the Message content (passed
-            in only when decomposing a Message).
-        @type content: bytes
-        """
-        if content != None:
-            self.packet = io.BytesIO(content)
-        else:
-            self.packet = io.BytesIO()
-
-    # This is to catch any stray calls to __str__ during porting to py3k
-    # Remove once porting has been completed.
-    def __str__(self):
-        raise Exception("Did you mean to call the bytes() method?")
-
-    def bytes(self):
-        """
-        Return the byte stream content of this Message, as bytes.
-
-        @return: the contents of this Message.
-        @rtype: bytes
-        """
-        return self.packet.getvalue()
 
     def __repr__(self):
         """
@@ -70,14 +44,14 @@ class Message (object):
 
         @rtype: string
         """
-        return 'paramiko.Message(' + repr(self.packet.getvalue()) + ')'
+        return 'paramiko.Message(' + repr(self.getvalue()) + ')'
 
     def rewind(self):
         """
         Rewind the message to the beginning as if no items had been parsed
         out of it yet.
         """
-        self.packet.seek(0)
+        self.seek(0)
 
     def get_remainder(self):
         """
@@ -87,9 +61,9 @@ class Message (object):
         @return: a string of the bytes not parsed yet.
         @rtype: string
         """
-        position = self.packet.tell()
-        remainder = self.packet.read()
-        self.packet.seek(position)
+        position = self.tell()
+        remainder = self.read()
+        self.seek(position)
         return remainder
 
     def get_so_far(self):
@@ -101,9 +75,9 @@ class Message (object):
         @return: a string of the bytes parsed so far.
         @rtype: string
         """
-        position = self.packet.tell()
+        position = self.tell()
         self.rewind()
-        return self.packet.read(position)
+        return self.read(position)
 
     def get_bytes(self, n):
         """
@@ -114,7 +88,7 @@ class Message (object):
             of C{n} zero bytes, if there aren't C{n} bytes remaining.
         @rtype: string
         """
-        b = self.packet.read(n)
+        b = self.read(n)
         if len(b) < n:
             return b + '\x00' * (n - len(b))
         return b
@@ -128,7 +102,7 @@ class Message (object):
             any bytes remaining.
         @rtype: string
         """
-        return self.get_bytes(1)[0]
+        return self.get_bytes(1)
 
     def get_boolean(self):
         """
@@ -195,7 +169,7 @@ class Message (object):
         @param b: bytes to add
         @type b: bytes
         """
-        self.packet.write(b)
+        self.write(b)
         return self
 
     def add_byte(self, b):
@@ -205,7 +179,7 @@ class Message (object):
         @param b: byte to add
         @type b: str
         """
-        self.packet.write(b)
+        self.write(b)
         return self
 
     def add_boolean(self, b):
@@ -228,7 +202,7 @@ class Message (object):
         @param n: integer to add
         @type n: int
         """
-        self.packet.write(struct.pack('>I', n))
+        self.write(struct.pack('>I', n))
         return self
 
     def add_int64(self, n):
@@ -238,7 +212,7 @@ class Message (object):
         @param n: long int to add
         @type n: long
         """
-        self.packet.write(struct.pack('>Q', n))
+        self.write(struct.pack('>Q', n))
         return self
 
     def add_mpint(self, z):
@@ -260,7 +234,7 @@ class Message (object):
         @type s: str
         """
         self.add_int(len(s))
-        self.packet.write(s)
+        self.write(s)
         return self
 
     def add_list(self, l):

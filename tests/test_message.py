@@ -38,7 +38,7 @@ class MessageTest (unittest.TestCase):
         msg.add_string(b'q')
         msg.add_string(b'hello')
         msg.add_string(b'x' * 1000)
-        self.assertEquals(msg.bytes(), self.__a)
+        self.assertEquals(msg.getvalue(), self.__a)
 
         msg = Message()
         msg.add_boolean(True)
@@ -46,7 +46,7 @@ class MessageTest (unittest.TestCase):
         msg.add_byte(0xf3)
         msg.add_bytes(b'\x00\x3f')
         msg.add_list([b'huey', b'dewey', b'louie'])
-        self.assertEquals(msg.bytes(), self.__b)
+        self.assertEquals(msg.getvalue(), self.__b)
 
         msg = Message()
         msg.add_int64(5)
@@ -54,7 +54,7 @@ class MessageTest (unittest.TestCase):
         msg.add_mpint(17)
         msg.add_mpint(0xf5e4d3c2b109)
         msg.add_mpint(-0x65e4d3c2b109)
-        self.assertEquals(msg.bytes(), self.__c)
+        self.assertEquals(msg.getvalue(), self.__c)
 
     def test_2_decode(self):
         msg = Message(self.__a)
@@ -85,7 +85,7 @@ class MessageTest (unittest.TestCase):
         msg.add(True)
         msg.add(b'cat')
         msg.add([b'a', b'b'])
-        self.assertEquals(msg.bytes(), self.__d)
+        self.assertEquals(msg.getvalue(), self.__d)
 
     def test_4_misc(self):
         msg = Message(self.__d)
