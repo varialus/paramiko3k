@@ -187,7 +187,7 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
                 item._pack(msg)
             else:
                 raise Exception('unknown type for ' + repr(item) + ' type ' + repr(type(item)))
-        self._send_packet(t, str(msg))
+        self._send_packet(t, msg.getvalue())
 
     def _send_handle_response(self, request_number, handle, folder=False):
         if not issubclass(type(handle), SFTPHandle):
@@ -234,7 +234,7 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
             msg.add_string(attr.filename)
             msg.add_string(str(attr))
             attr._pack(msg)
-        self._send_packet(CMD_NAME, str(msg))
+        self._send_packet(CMD_NAME, msg.getvalue())
 
     def _check_file(self, request_number, msg):
         # this extension actually comes from v6 protocol, but since it's an
@@ -293,7 +293,7 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
         msg.add_string('check-file')
         msg.add_string(algname)
         msg.add_bytes(sum_out)
-        self._send_packet(CMD_EXTENDED_REPLY, str(msg))
+        self._send_packet(CMD_EXTENDED_REPLY, msg.getvalue())
     
     def _convert_pflags(self, pflags):
         "convert SFTP-style open() flags to python's os.open() flags"

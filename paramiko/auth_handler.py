@@ -120,7 +120,7 @@ class AuthHandler (object):
     def _request_auth(self):
         m = Message()
         m.add_byte(byt(MSG_SERVICE_REQUEST))
-        m.add_string('ssh-userauth')
+        m.add_string(b'ssh-userauth')
         self.transport._send_message(m)
 
     def _disconnect_service_not_available(self):
@@ -150,8 +150,8 @@ class AuthHandler (object):
         m.add_string('publickey')
         m.add_boolean(1)
         m.add_string(key.get_name())
-        m.add_string(str(key))
-        return str(m)
+        m.add_string(msg.getvalue())
+        return m.getvalue()
 
     def wait_for_response(self, event):
         while True:
@@ -176,7 +176,7 @@ class AuthHandler (object):
 
     def _parse_service_request(self, m):
         service = m.get_bytes()
-        if self.transport.server_mode and (service == 'ssh-userauth'):
+        if self.transport.server_mode and (service == b'ssh-userauth'):
             # accepted
             m = Message()
             m.add_byte(byt(MSG_SERVICE_ACCEPT))
@@ -188,30 +188,30 @@ class AuthHandler (object):
 
     def _parse_service_accept(self, m):
         service = m.get_bytes()
-        if service == 'ssh-userauth':
+        if service == b'ssh-userauth':
             self.transport._log(DEBUG, 'userauth is OK')
             m = Message()
             m.add_byte(byt(MSG_USERAUTH_REQUEST))
             m.add_string(self.username)
-            m.add_string('ssh-connection')
+            m.add_string(b'ssh-connection')
             m.add_string(self.auth_method)
-            if self.auth_method == 'password':
+            if self.auth_method == 'bpassword':
                 m.add_boolean(False)
                 password = self.password
                 if isinstance(password, str):
                     password = password.encode('UTF-8')
                 m.add_string(password)
-            elif self.auth_method == 'publickey':
+            elif self.auth_method == b'publickey':
                 m.add_boolean(True)
                 m.add_string(self.private_key.get_name())
-                m.add_string(str(self.private_key))
-                blob = self._get_session_blob(self.private_key, 'ssh-connection', self.username)
+                m.add_string(self.private_key.getvalue())
+                blob = self._get_session_blob(self.private_key, b'ssh-connection', self.username)
                 sig = self.private_key.sign_ssh_data(self.transport.randpool, blob)
                 m.add_string(str(sig))
-            elif self.auth_method == 'keyboard-interactive':
+            elif self.auth_method == b'keyboard-interactive':
                 m.add_string('')
                 m.add_string(self.submethods)
-            elif self.auth_method == 'none':
+            elif self.auth_method == b'none':
                 pass
             else:
                 raise SSHException('Unknown auth method "%s"' % self.auth_method)
@@ -270,7 +270,7 @@ class AuthHandler (object):
         service = m.get_bytes()
         method = m.get_bytes()
         self.transport._log(DEBUG, 'Auth request (type=%s) service=%s, username=%s' % (method, service, username))
-        if service != 'ssh-connection':
+        if service != b'ssh-connection':
             self._disconnect_service_not_available()
             return
         if (self.auth_username is not None) and (self.auth_username != username):

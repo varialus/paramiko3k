@@ -27,7 +27,7 @@ from paramiko.common import *
 from paramiko import util
 from paramiko.message import Message
 from paramiko.ssh_exception import SSHException
-from paramiko.pycompat import byt
+from paramiko.pycompat import byt, bytord
 
 _MSG_KEXDH_INIT, _MSG_KEXDH_REPLY = range(30, 32)
 
@@ -81,7 +81,7 @@ class KexGroup1(object):
         while 1:
             self.transport.randpool.stir()
             x_bytes = self.transport.randpool.get_bytes(128)
-            x_bytes = byt(ord(x_bytes[0]) & 0x7f) + x_bytes[1:]
+            x_bytes = byt(bytord(x_bytes[0]) & 0x7f) + x_bytes[1:]
             if (x_bytes[:8] != '\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF') and \
                    (x_bytes[:8] != '\x00\x00\x00\x00\x00\x00\x00\x00'):
                 break
@@ -131,6 +131,6 @@ class KexGroup1(object):
         m.add_byte(byt(_MSG_KEXDH_REPLY))
         m.add_string(key)
         m.add_mpint(self.f)
-        m.add_string(sig.getvalue())
+        m.add_string(sig)
         self.transport._send_message(m)
         self.transport._activate_outbound()

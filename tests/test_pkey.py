@@ -83,11 +83,11 @@ class KeyTest (unittest.TestCase):
 
     def test_2_load_rsa(self):
         key = RSAKey.from_private_key_file('tests/test_rsa.key')
-        self.assertEquals('ssh-rsa', key.get_name())
+        self.assertEquals(b'ssh-rsa', key.get_name())
         exp_rsa = FINGER_RSA.split()[1].replace(':', '').encode('ascii')
         my_rsa = hexlify(key.get_fingerprint())
         self.assertEquals(exp_rsa, my_rsa)
-        self.assertEquals(PUB_RSA.split()[1], key.get_base64())
+        self.assertEquals(PUB_RSA.split()[1].encode('ascii'), key.get_base64())
         self.assertEquals(1024, key.get_bits())
 
         s = io.StringIO()
@@ -99,20 +99,20 @@ class KeyTest (unittest.TestCase):
 
     def test_3_load_rsa_password(self):
         key = RSAKey.from_private_key_file('tests/test_rsa_password.key', b'television')
-        self.assertEquals('ssh-rsa', key.get_name())
+        self.assertEquals(b'ssh-rsa', key.get_name())
         exp_rsa = FINGER_RSA.split()[1].replace(':', '').encode('ascii')
         my_rsa = hexlify(key.get_fingerprint())
         self.assertEquals(exp_rsa, my_rsa)
-        self.assertEquals(PUB_RSA.split()[1], key.get_base64())
+        self.assertEquals(PUB_RSA.split()[1].encode('ascii'), key.get_base64())
         self.assertEquals(1024, key.get_bits())
         
     def test_4_load_dss(self):
         key = DSSKey.from_private_key_file('tests/test_dss.key')
-        self.assertEquals('ssh-dss', key.get_name())
+        self.assertEquals(b'ssh-dss', key.get_name())
         exp_dss = FINGER_DSS.split()[1].replace(':', '').encode('ascii')
         my_dss = hexlify(key.get_fingerprint())
         self.assertEquals(exp_dss, my_dss)
-        self.assertEquals(PUB_DSS.split()[1], key.get_base64())
+        self.assertEquals(PUB_DSS.split()[1].encode('ascii'), key.get_base64())
         self.assertEquals(1024, key.get_bits())
 
         s = io.StringIO()
@@ -124,11 +124,11 @@ class KeyTest (unittest.TestCase):
 
     def test_5_load_dss_password(self):
         key = DSSKey.from_private_key_file('tests/test_dss_password.key', b'television')
-        self.assertEquals('ssh-dss', key.get_name())
+        self.assertEquals(b'ssh-dss', key.get_name())
         exp_dss = FINGER_DSS.split()[1].replace(':', '').encode('ascii')
         my_dss = hexlify(key.get_fingerprint())
         self.assertEquals(exp_dss, my_dss)
-        self.assertEquals(PUB_DSS.split()[1], key.get_base64())
+        self.assertEquals(PUB_DSS.split()[1].encode('ascii'), key.get_base64())
         self.assertEquals(1024, key.get_bits())
 
     def test_6_compare_rsa(self):
@@ -156,16 +156,16 @@ class KeyTest (unittest.TestCase):
         self.assert_(type(msg) is Message)
         msg.rewind()
         self.assertEquals(b'ssh-rsa', msg.get_bytes())
-        sig = ''.join([byt(int(x, 16)) for x in SIGNED_RSA.split(':')])
+        sig = b''.join([byt(int(x, 16)) for x in SIGNED_RSA.split(':')])
         self.assertEquals(sig, msg.get_bytes())
         msg.rewind()
-        pub = RSAKey(data=str(key))
+        pub = RSAKey(data=key.getvalue())
         self.assert_(pub.verify_ssh_sig(b'ice weasels', msg))
 
     def test_9_sign_dss(self):
         # verify that the dss private key can sign and verify
         key = DSSKey.from_private_key_file('tests/test_dss.key')
-        msg = key.sign_ssh_data(randpool, b'ice weasels')
+        msg = key.sign_ssh_data(randpool, b'ice weasels')  # key has reasonable q
         self.assert_(type(msg) is Message)
         msg.rewind()
         self.assertEquals(b'ssh-dss', msg.get_bytes())
@@ -174,7 +174,7 @@ class KeyTest (unittest.TestCase):
         # anyway so it's ok.
         self.assertEquals(40, len(msg.get_bytes()))
         msg.rewind()
-        pub = DSSKey(data=str(key))
+        pub = DSSKey(data=msg.getvalue())   # extracts bad q
         self.assert_(pub.verify_ssh_sig(b'ice weasels', msg))
     
     def test_A_generate_rsa(self):

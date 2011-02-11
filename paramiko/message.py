@@ -93,7 +93,7 @@ class Message (io.BytesIO):
             n=self.get_int()
         b = self.read(n)
         if len(b) < n:
-            return b + '\x00' * (n - len(b))
+            return b + b'\x00' * (n - len(b))
         return b
 
     def get_byte(self):
@@ -231,10 +231,10 @@ class Message (io.BytesIO):
 
     def add_string(self, s):
         """
-        Add a string to the stream.
+        Add length prepended bytes to the stream.
         
-        @param s: string to add
-        @type s: str
+        @param s: bytes to add
+        @type s: bytes
         """
         self.add_int(len(s))
         self.write(s)
@@ -265,7 +265,7 @@ class Message (io.BytesIO):
         elif type(i) is list:
             return self.add_list(i)
         else:
-            raise Exception('Unknown type')
+            raise Exception('Unknown type '+repr(i))
 
     def add(self, *seq):
         """

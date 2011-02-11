@@ -33,7 +33,7 @@ def _generate_prime(bits, randpool):
         # loop catches the case where we increment n into a higher bit-range
         x = randpool.get_bytes((bits+7) // 8)
         if hbyte_mask > 0:
-            x = byt(ord(x[0]) & hbyte_mask) + x[1:]
+            x = byt(bytord(x[0]) & hbyte_mask) + x[1:]
         n = util.inflate_long(x, 1)
         n |= 1
         n |= (1 << (bits - 1))
@@ -58,7 +58,7 @@ def _roll_random(rpool, n):
     while True:
         x = rpool.get_bytes(bytes)
         if hbyte_mask > 0:
-            x = byt(ord(x[0]) & hbyte_mask) + x[1:]
+            x = byt(bytord(x[0]) & hbyte_mask) + x[1:]
         num = util.inflate_long(x, 1)
         if num < n:
             break

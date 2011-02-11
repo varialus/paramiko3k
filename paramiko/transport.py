@@ -620,7 +620,7 @@ class Transport (threading.Thread):
         @note: Previously this call returned a tuple of (key type, key string).
             You can get the same effect by calling
             L{PKey.get_name <pkey.PKey.get_name>} for the key type, and
-            C{str(key)} for the key string.
+            C{msg.getvalue()} for the key string.
 
         @raise SSHException: if no session is currently active.
 
@@ -993,10 +993,10 @@ class Transport (threading.Thread):
         # check host key if we were given one
         if (hostkey is not None):
             key = self.get_remote_server_key()
-            if (key.get_name() != hostkey.get_name()) or (str(key) != str(hostkey)):
+            if (key.get_name() != hostkey.get_name()) or (msg.getvalue() != str(hostkey)):
                 self._log(DEBUG, 'Bad host key from server')
                 self._log(DEBUG, 'Expected: %s: %s' % (hostkey.get_name(), repr(str(hostkey))))
-                self._log(DEBUG, 'Got     : %s: %s' % (key.get_name(), repr(str(key))))
+                self._log(DEBUG, 'Got     : %s: %s' % (key.get_name(), repr(msg.getvalue())))
                 raise SSHException('Bad host key from server')
             self._log(DEBUG, 'Host key verified (%s)' % hostkey.get_name())
 

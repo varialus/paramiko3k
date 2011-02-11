@@ -57,16 +57,18 @@ class HostKeyEntry:
             # Bad number of fields
             return None
         fields = fields[:3]
-
+        
         names, keytype, key = fields
         names = names.split(',')
-
+        keytype=keytype.encode('ascii')
+        key=key.encode('ascii')
+        
         # Decide what kind of key we're looking at and create an object
         # to hold it accordingly.
-        if keytype == 'ssh-rsa':
-            key = RSAKey(data=base64.decodebytes(key.encode('ascii')))
-        elif keytype == 'ssh-dss':
-            key = DSSKey(data=base64.decodebytes(key.encode('ascii')))
+        if keytype == b'ssh-rsa':
+            key = RSAKey(data=base64.decodebytes(key))
+        elif keytype == b'ssh-dss':
+            key = DSSKey(data=base64.decodebytes(key))
         else:
             return None
 
@@ -80,8 +82,9 @@ class HostKeyEntry:
         included.
         """
         if self.valid:
-            return '%s %s %s\n' % (','.join(self.hostnames), self.key.get_name(),
-                   self.key.get_base64())
+            return '%s %s %s\n' % (','.join(self.hostnames),
+                                   self.key.get_name().decode('ascii'),
+                                   self.key.get_base64().decode('ascii'))
         return None
 
     def __repr__(self):
@@ -252,7 +255,7 @@ class HostKeys (collections.MutableMapping):
         host_key = k.get(key.get_name(), None)
         if host_key is None:
             return False
-        return str(host_key) == str(key)
+        return host_key.getvalue() == key.getvalue()
 
     def clear(self):
         """

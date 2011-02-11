@@ -18,7 +18,7 @@
 
 
 from . import util
-from paramiko.pycompat import byt
+from paramiko.pycompat import byt, bytord
 
 class BERException (Exception):
     pass
@@ -33,7 +33,7 @@ class BER(object):
         self.content = content
         self.idx = 0
 
-    def __str__(self):
+    def getvalue(self):
         return self.content
 
     def __repr__(self):
@@ -45,13 +45,13 @@ class BER(object):
     def decode_next(self):
         if self.idx >= len(self.content):
             return None
-        ident = ord(self.content[self.idx:self.idx+1])
+        ident = bytord(self.content[self.idx])
         self.idx += 1
         if (ident & 31) == 31:
             # identifier > 30
             ident = 0
             while self.idx < len(self.content):
-                t = ord(self.content[self.idx:self.idx+1])
+                t = bytord(self.content[self.idx])
                 self.idx += 1
                 ident = (ident << 7) | (t & 0x7f)
                 if not (t & 0x80):
@@ -59,7 +59,7 @@ class BER(object):
         if self.idx >= len(self.content):
             return None
         # now fetch length
-        size = ord(self.content[self.idx:self.idx+1])
+        size = bytord(self.content[self.idx])
         self.idx += 1
         if size & 0x80:
             # more complimicated...
@@ -125,5 +125,5 @@ class BER(object):
         b = BER()
         for item in data:
             b.encode(item)
-        return str(b)
+        return b.getvalue()
     encode_sequence = staticmethod(encode_sequence)

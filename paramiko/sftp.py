@@ -125,7 +125,7 @@ class BaseSFTP (object):
         msg = Message()
         msg.add_int(_VERSION)
         msg.add(*extension_pairs)
-        self._send_packet(CMD_VERSION, str(msg))
+        self._send_packet(CMD_VERSION, msg.getvalue())
         return version
         
     def _log(self, level, msg, *args):

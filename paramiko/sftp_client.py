@@ -653,7 +653,7 @@ class SFTPClient (BaseSFTP):
                     raise Exception('unknown type for %r type %r' % (item, type(item)))
             num = self.request_number
             self._expecting[num] = fileobj
-            self._send_packet(t, str(msg))
+            self._send_packet(t, msg.getvalue())
             self.request_number += 1
         finally:
             self._lock.release()

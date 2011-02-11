@@ -67,7 +67,7 @@ class MessageTest (unittest.TestCase):
         msg = Message(self.__b)
         self.assertEquals(msg.get_boolean(), True)
         self.assertEquals(msg.get_boolean(), False)
-        self.assertEquals(msg.get_byte(), 0xf3)
+        self.assertEquals(msg.get_byte(), b'\xf3')
         self.assertEquals(msg.get_bytes(2), b'\x00\x3f')
         self.assertEquals(msg.get_list(), [b'huey', b'dewey', b'louie'])
 

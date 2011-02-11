@@ -28,7 +28,7 @@ import sys
 from paramiko.ssh_exception import SSHException
 from paramiko.message import Message
 from paramiko.pkey import PKey
-from paramiko.pycompat import byt
+from paramiko.pycompat import byt, bytord
 
 SSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER, \
     SSH2_AGENTC_SIGN_REQUEST, SSH2_AGENT_SIGN_RESPONSE = range(11, 15)
@@ -103,11 +103,11 @@ class Agent:
         return self.keys
 
     def _send_message(self, msg):
-        msg = str(msg)
+        msg = msg.getvalue()
         self.conn.send(struct.pack('>I', len(msg)) + msg)
         l = self._read_all(4)
         msg = Message(self._read_all(struct.unpack('>I', l)[0]))
-        return ord(msg.get_byte()), msg
+        return bytord(msg.get_byte()), msg
 
     def _read_all(self, wanted):
         result = self.conn.recv(wanted)

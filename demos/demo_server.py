@@ -39,7 +39,7 @@ print('Read key: ' + hexlify(host_key.get_fingerprint()))
 
 
 class Server (paramiko.ServerInterface):
-    # 'data' is the output of base64.encodestring(str(key))
+    # 'data' is the output of base64.encodebytes(msg.getvalue())
     # (using the "user_rsa_key" files)
     data = 'AAAAB3NzaC1yc2EAAAABIwAAAIEAyO4it3fHlmGZWJaGrfeHOVY7RWO3P9M7hp' + \
            'fAu7jJ2d7eothvfeuoRFtJwhUmZDluRdFyhFY/hFAh76PJKGAusIqIQKlkJxMC' + \

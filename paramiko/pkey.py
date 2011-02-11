@@ -73,24 +73,25 @@ class PKey (object):
         """
         return ''
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare this key to another.  Returns 0 if this key is equivalent to
-        the given key, or non-0 if they are different.  Only the public parts
+        Compare this key to another.  Returns True if this key is equivalent to
+        the given key, or False if they are different.  Only the public parts
         of the key are compared, so a public key will compare equal to its
         corresponding private key.
 
         @param other: key to compare to.
         @type other: L{PKey}
-        @return: 0 if the two keys are equivalent, non-0 otherwise.
-        @rtype: int
+        @return: True if the two keys are equivalent, False otherwise.
+        @rtype: bool
         """
-        hs = hash(self)
-        ho = hash(other)
-        if hs != ho:
-            return cmp(hs, ho)
-        return cmp(str(self), str(other))
-
+        #hs = hash(self)
+        #ho = hash(other)
+        #if hs != ho:
+            #return cmp(hs, ho)
+        #return cmp(self.getvalue(), other.getvalue())
+        return (hash(self) == hash(other)) and (self.getvalue() == other.getvalue())
+        
     def get_name(self):
         """
         Return the name of this private key implementation.
@@ -99,7 +100,7 @@ class PKey (object):
         example, C{"ssh-rsa"}).
         @rtype: str
         """
-        return ''
+        return b''
 
     def get_bits(self):
         """
@@ -141,7 +142,7 @@ class PKey (object):
         @return: a base64 string containing the public part of the key.
         @rtype: str
         """
-        return base64.encodestring(str(self)).replace('\n', '')
+        return base64.encodebytes(self.getvalue()).replace(b'\n', b'')
 
     def sign_ssh_data(self, randpool, data):
         """
@@ -366,12 +367,12 @@ class PKey (object):
                 n = blocksize - len(data) % blocksize
                 #data += randpool.get_bytes(n)
                 # that would make more sense ^, but it confuses openssh.
-                data += '\0' * n
+                data += b'\0' * n
             data = cipher.new(key, mode, salt).encrypt(data)
             f.write('Proc-Type: 4,ENCRYPTED\n')
             f.write('DEK-Info: %s,%s\n' % (cipher_name, hexlify(salt).upper()))
             f.write('\n')
-        s = base64.encodestring(data)
+        s = base64.encodebytes(data).decode('ascii')
         # re-wrap to 64-char lines
         s = ''.join(s.split('\n'))
         s = '\n'.join([s[i : i+64] for i in range(0, len(s), 64)])

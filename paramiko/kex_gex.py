@@ -29,7 +29,7 @@ from paramiko.common import *
 from paramiko import util
 from paramiko.message import Message
 from paramiko.ssh_exception import SSHException
-from paramiko.pycompat import byt
+from paramiko.pycompat import byt, bytord
 
 _MSG_KEXDH_GEX_REQUEST_OLD, _MSG_KEXDH_GEX_GROUP, _MSG_KEXDH_GEX_INIT, \
     _MSG_KEXDH_GEX_REPLY, _MSG_KEXDH_GEX_REQUEST = range(30, 35)
@@ -94,7 +94,7 @@ class KexGex (object):
         # generate an "x" (1 < x < (p-1)/2).
         q = (self.p - 1) // 2
         qnorm = util.deflate_long(q, 0)
-        qhbyte = ord(qnorm[0])
+        qhbyte = bytord(qnorm[0])
         bytes = len(qnorm)
         qmask = 0xff
         while not (qhbyte & 0x80):
@@ -103,7 +103,7 @@ class KexGex (object):
         while True:
             self.transport.randpool.stir()
             x_bytes = self.transport.randpool.get_bytes(bytes)
-            x_bytes = byt(ord(x_bytes[0]) & qmask) + x_bytes[1:]
+            x_bytes = byt(bytord(x_bytes[0]) & qmask) + x_bytes[1:]
             x = util.inflate_long(x_bytes, 1)
             if (x > 1) and (x < q):
                 break
@@ -188,7 +188,7 @@ class KexGex (object):
         self._generate_x()
         self.f = pow(self.g, self.x, self.p)
         K = pow(self.e, self.x, self.p)
-        key = str(self.transport.get_server_key())
+        key = self.transport.get_server_key().getvalue()
         # okay, build up the hash H of (V_C || V_S || I_C || I_S || K_S || min || n || max || p || g || e || f || K)
         hm = Message()
         hm.add(self.transport.remote_version, self.transport.local_version,
@@ -204,7 +204,7 @@ class KexGex (object):
         hm.add_mpint(self.e)
         hm.add_mpint(self.f)
         hm.add_mpint(K)
-        H = SHA.new(str(hm)).digest()
+        H = SHA.new(hm.getvalue()).digest()
         self.transport._set_K_H(K, H)
         # sign it
         sig = self.transport.get_server_key().sign_ssh_data(self.transport.randpool, H)
@@ -213,7 +213,7 @@ class KexGex (object):
         m.add_byte(byt(_MSG_KEXDH_GEX_REPLY))
         m.add_string(key)
         m.add_mpint(self.f)
-        m.add_string(str(sig))
+        m.add_string(sig)
         self.transport._send_message(m)
         self.transport._activate_outbound()
         

@@ -38,12 +38,12 @@ class NullServer (paramiko.ServerInterface):
         return 'publickey'
 
     def check_auth_password(self, username, password):
-        if (username == 'slowdive') and (password == 'pygmalion'):
+        if (username == b'slowdive') and (password == b'pygmalion'):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
-        if (key.get_name() == 'ssh-dss') and (hexlify(key.get_fingerprint()) == '4478f0b9a23cc5182009ff755bc1d26c'):
+        if (key.get_name() == b'ssh-dss') and (hexlify(key.get_fingerprint()) == b'4478f0b9a23cc5182009ff755bc1d26c'):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 

@@ -86,7 +86,7 @@ class DSSKey (PKey):
         return hash(h)
 
     def get_name(self):
-        return 'ssh-dss'
+        return b'ssh-dss'
 
     def get_bits(self):
         return self.size
@@ -117,12 +117,12 @@ class DSSKey (PKey):
         return m
 
     def verify_ssh_sig(self, data, msg):
-        if len(str(msg)) == 40:
+        if len(msg.getvalue()) == 40:
             # spies.com bug: signature has no header
-            sig = str(msg)
+            sig = msg.getvalue()
         else:
             kind = msg.get_bytes()
-            if kind != 'ssh-dss':
+            if kind != b'ssh-dss':
                 return 0
             sig = msg.get_bytes()
 
@@ -143,7 +143,7 @@ class DSSKey (PKey):
             b.encode(keylist)
         except BERException:
             raise SSHException('Unable to create ber encoding of key')
-        return str(b)
+        return b.getvalue()
 
     def write_private_key_file(self, filename, password=None):
         self._write_private_key_file('DSA', filename, self._encode_key(), password)

@@ -31,7 +31,7 @@ import threading
 
 from paramiko.common import *
 from paramiko.config import SSHConfig
-from paramiko.pycompat import byt
+from paramiko.pycompat import byt, bytord
 
 # Change by RogerB - python < 2.3 doesn't have enumerate so we implement it
 if sys.version_info < (2,3):
@@ -49,7 +49,7 @@ def inflate_long(s, always_positive=False):
     "turns a normalized bytes into a long-int (adapted from Crypto.Util.number)"
     out = 0
     negative = 0
-    if not always_positive and (len(s) > 0) and (ord(s[0:1]) >= 0x80):
+    if not always_positive and (len(s) > 0) and (bytord(s[0]) >= 0x80):
         negative = 1
     if len(s) % 4:
         filler = b'\x00'
@@ -72,9 +72,9 @@ def deflate_long(n, add_sign_padding=True):
         n = n >> 32
     # strip off leading zeros, FFs
     for i in enumerate(s):
-        if (n == 0) and (i[1] != 0x00):
+        if (n == 0) and (bytord(i[1]) != 0x00):
             break
-        if (n == -1) and (i[1] != 0xff):
+        if (n == -1) and (bytord(i[1]) != 0xff):
             break
     else:
         # degenerate case, n was either 0 or -1
@@ -85,9 +85,9 @@ def deflate_long(n, add_sign_padding=True):
             s = b'\xff'
     s = s[i[0]:]
     if add_sign_padding:
-        if (n == 0) and (ord(s[0:1]) >= 0x80):
+        if (n == 0) and (bytord(s[0]) >= 0x80):
             s = b'\x00' + s
-        if (n == -1) and (ord(s[0:1]) < 0x80):
+        if (n == -1) and (bytord(s[0]) < 0x80):
             s = b'\xff' + s
     return s
 
@@ -112,9 +112,9 @@ def format_binary(data, prefix=''):
     return [prefix + x for x in out]
 
 def format_binary_line(data):
-    left = b' '.join(['%02X' % ord(c) for c in data])
-    right = b''.join([('.%c..' % c)[(ord(c)+63)//95] for c in data])
-    return b'%-50s %s' % (left, right)
+    left = ' '.join(['%02X' % bytord(c) for c in data])
+    right = ''.join([('.%c..' % c)[(bytord(c)+63)//95] for c in data])
+    return '%-50s %s' % (left, right)
 
 def hexify(s):
     return hexlify(s).upper()
@@ -288,7 +288,7 @@ class Counter (object):
         """Increament the counter and return the new value"""
         i = self.blocksize - 1
         while i > -1:
-            c = self.value[i] = byt((ord(self.value[i]) + 1) % 256)
+            c = self.value[i] = byt((bytord(self.value[i]) + 1) % 256)
             if c != '\x00':
                 return self.value.tostring()
             i -= 1
