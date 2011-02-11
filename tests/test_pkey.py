@@ -174,7 +174,7 @@ class KeyTest (unittest.TestCase):
         # anyway so it's ok.
         self.assertEquals(40, len(msg.get_bytes()))
         msg.rewind()
-        pub = DSSKey(data=msg.getvalue())   # extracts bad q
+        pub = DSSKey(data=key.getvalue())   # extracts bad q
         self.assert_(pub.verify_ssh_sig(b'ice weasels', msg))
     
     def test_A_generate_rsa(self):
