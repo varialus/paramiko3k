@@ -218,9 +218,9 @@ class KexGex (object):
         self.transport._activate_outbound()
         
     def _parse_kexdh_gex_reply(self, m):
-        host_key = m.get_string()
+        host_key = m.get_bytes()
         self.f = m.get_mpint()
-        sig = m.get_string()
+        sig = m.get_bytes()
         if (self.f < 1) or (self.f > self.p - 1):
             raise SSHException('Server kex "f" is out of range')
         K = pow(self.f, self.x, self.p)

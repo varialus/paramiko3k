@@ -173,7 +173,7 @@ class SFTPClient (BaseSFTP):
         t, msg = self._request(CMD_OPENDIR, path)
         if t != CMD_HANDLE:
             raise SFTPError('Expected handle')
-        handle = msg.get_string()
+        handle = msg.get_bytes()
         filelist = []
         while True:
             try:
@@ -185,8 +185,8 @@ class SFTPClient (BaseSFTP):
                 raise SFTPError('Expected name response')
             count = msg.get_int()
             for i in range(count):
-                filename = _to_unicode(msg.get_string())
-                longname = _to_unicode(msg.get_string())
+                filename = _to_unicode(msg.get_bytes())
+                longname = _to_unicode(msg.get_bytes())
                 attr = SFTPAttributes._from_msg(msg, filename, longname)
                 if (filename != '.') and (filename != '..'):
                     filelist.append(attr)
@@ -245,7 +245,7 @@ class SFTPClient (BaseSFTP):
         t, msg = self._request(CMD_OPEN, filename, imode, attrblock)
         if t != CMD_HANDLE:
             raise SFTPError('Expected handle')
-        handle = msg.get_string()
+        handle = msg.get_bytes()
         self._log(DEBUG, 'open(%r, %r) -> %s' % (filename, mode, hexlify(handle)))
         return SFTPFile(self, handle, mode, bufsize)
 
@@ -471,7 +471,7 @@ class SFTPClient (BaseSFTP):
             return None
         if count != 1:
             raise SFTPError('Readlink returned %d results' % count)
-        return _to_unicode(msg.get_string())
+        return _to_unicode(msg.get_bytes())
 
     def normalize(self, path):
         """
@@ -495,7 +495,7 @@ class SFTPClient (BaseSFTP):
         count = msg.get_int()
         if count != 1:
             raise SFTPError('Realpath returned %d results' % count)
-        return _to_unicode(msg.get_string())
+        return _to_unicode(msg.get_bytes())
 
     def chdir(self, path):
         """
@@ -698,7 +698,7 @@ class SFTPClient (BaseSFTP):
         Raises EOFError or IOError on error status; otherwise does nothing.
         """
         code = msg.get_int()
-        text = msg.get_string()
+        text = msg.get_bytes()
         if code == SFTP_OK:
             return
         elif code == SFTP_EOF:

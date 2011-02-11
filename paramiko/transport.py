@@ -1891,24 +1891,24 @@ class Transport (threading.Thread):
 
     def _parse_disconnect(self, m):
         code = m.get_int()
-        desc = m.get_string()
+        desc = m.get_bytes()
         self._log(INFO, 'Disconnect (code %d): %s' % (code, desc))
 
     def _parse_global_request(self, m):
-        kind = m.get_string()
+        kind = m.get_bytes()
         self._log(DEBUG, 'Received global request "%s"' % kind)
         want_reply = m.get_boolean()
         if not self.server_mode:
             self._log(DEBUG, 'Rejecting "%s" global request from server.' % kind)
             ok = False
         elif kind == b'tcpip-forward':
-            address = m.get_string()
+            address = m.get_bytes()
             port = m.get_int()
             ok = self.server_object.check_port_forward_request(address, port)
             if ok != False:
                 ok = (ok,)
         elif kind == b'cancel-tcpip-forward':
-            address = m.get_string()
+            address = m.get_bytes()
             port = m.get_int()
             self.server_object.cancel_port_forward_request(address, port)
             ok = True
@@ -1962,8 +1962,8 @@ class Transport (threading.Thread):
     def _parse_channel_open_failure(self, m):
         chanid = m.get_int()
         reason = m.get_int()
-        reason_str = m.get_string()
-        lang = m.get_string()
+        reason_str = m.get_bytes()
+        lang = m.get_bytes()
         reason_text = CONNECTION_FAILED_CODE.get(reason, '(unknown code)')
         self._log(INFO, 'Secsh channel %d open FAILED: %s: %s' % (chanid, reason_str, reason_text))
         self.lock.acquire()
@@ -1979,13 +1979,13 @@ class Transport (threading.Thread):
         return
 
     def _parse_channel_open(self, m):
-        kind = m.get_string()
+        kind = m.get_bytes()
         chanid = m.get_int()
         initial_window_size = m.get_int()
         max_packet_size = m.get_int()
         reject = False
         if (kind == 'x11') and (self._x11_handler is not None):
-            origin_addr = m.get_string()
+            origin_addr = m.get_bytes()
             origin_port = m.get_int()
             self._log(DEBUG, 'Incoming x11 connection from %s:%d' % (origin_addr, origin_port))
             self.lock.acquire()
@@ -1994,9 +1994,9 @@ class Transport (threading.Thread):
             finally:
                 self.lock.release()
         elif (kind == b'forwarded-tcpip') and (self._tcp_handler is not None):
-            server_addr = m.get_string()
+            server_addr = m.get_bytes()
             server_port = m.get_int()
-            origin_addr = m.get_string()
+            origin_addr = m.get_bytes()
             origin_port = m.get_int()
             self._log(DEBUG, 'Incoming tcp forwarded connection from %s:%d' % (origin_addr, origin_port))
             self.lock.acquire()
@@ -2016,9 +2016,9 @@ class Transport (threading.Thread):
                 self.lock.release()
             if kind == b'direct-tcpip':
                 # handle direct-tcpip requests comming from the client
-                dest_addr = m.get_string()
+                dest_addr = m.get_bytes()
                 dest_port = m.get_int()
-                origin_addr = m.get_string()
+                origin_addr = m.get_bytes()
                 origin_port = m.get_int()
                 reason = self.server_object.check_channel_direct_tcpip_request(
                                 my_chanid, (origin_addr, origin_port),
@@ -2066,8 +2066,8 @@ class Transport (threading.Thread):
 
     def _parse_debug(self, m):
         always_display = m.get_boolean()
-        msg = m.get_string()
-        lang = m.get_string()
+        msg = m.get_bytes()
+        lang = m.get_bytes()
         self._log(DEBUG, 'Debug msg: ' + util.safe_string(msg))
 
     def _get_subsystem_handler(self, name):

@@ -155,7 +155,7 @@ class SFTPFile (BufferedFile):
         t, msg = self.sftp._request(CMD_READ, self.handle, int(self._realpos), int(size))
         if t != CMD_DATA:
             raise SFTPError('Expected data')
-        return msg.get_string()
+        return msg.get_bytes()
 
     def _write(self, data):
         # may write less than requested if it would exceed max packet size
@@ -341,8 +341,8 @@ class SFTPFile (BufferedFile):
         """
         t, msg = self.sftp._request(CMD_EXTENDED, 'check-file', self.handle,
                                     hash_algorithm, int(offset), int(length), block_size)
-        ext = msg.get_string()
-        alg = msg.get_string()
+        ext = msg.get_bytes()
+        alg = msg.get_bytes()
         data = msg.get_remainder()
         return data
     
@@ -462,7 +462,7 @@ class SFTPFile (BufferedFile):
             return
         if t != CMD_DATA:
             raise SFTPError('Expected data')
-        data = msg.get_string()
+        data = msg.get_bytes()
         offset, length = self._prefetch_reads.pop(0)
         self._prefetch_data[offset] = data
         if len(self._prefetch_reads) == 0:

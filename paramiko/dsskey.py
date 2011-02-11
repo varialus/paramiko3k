@@ -56,7 +56,7 @@ class DSSKey (PKey):
         else:
             if msg is None:
                 raise SSHException('Key object may not be empty')
-            if msg.get_string() != b'ssh-dss':
+            if msg.get_bytes() != b'ssh-dss':
                 raise SSHException('Invalid key')
             self.p = msg.get_mpint()
             self.q = msg.get_mpint()
@@ -86,7 +86,7 @@ class DSSKey (PKey):
         return hash(h)
 
     def get_name(self):
-        return b'ssh-dss'
+        return 'ssh-dss'
 
     def get_bits(self):
         return self.size
@@ -121,10 +121,10 @@ class DSSKey (PKey):
             # spies.com bug: signature has no header
             sig = str(msg)
         else:
-            kind = msg.get_string()
+            kind = msg.get_bytes()
             if kind != 'ssh-dss':
                 return 0
-            sig = msg.get_string()
+            sig = msg.get_bytes()
 
         # pull out (r, s) which are NOT encoded as mpints
         sigR = util.inflate_long(sig[:20], 1)

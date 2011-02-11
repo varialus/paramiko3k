@@ -57,7 +57,7 @@ class RSAKey (PKey):
         else:
             if msg is None:
                 raise SSHException('Key object may not be empty')
-            if msg.get_string() != b'ssh-rsa':
+            if msg.get_bytes() != b'ssh-rsa':
                 raise SSHException('Invalid key')
             self.e = msg.get_mpint()
             self.n = msg.get_mpint()
@@ -80,7 +80,7 @@ class RSAKey (PKey):
         return hash(h)
 
     def get_name(self):
-        return b'ssh-rsa'
+        return 'ssh-rsa'
 
     def get_bits(self):
         return self.size
@@ -98,9 +98,9 @@ class RSAKey (PKey):
         return m
 
     def verify_ssh_sig(self, data, msg):
-        if msg.get_string() != b'ssh-rsa':
+        if msg.get_bytes() != b'ssh-rsa':
             return False
-        sig = util.inflate_long(msg.get_string(), True)
+        sig = util.inflate_long(msg.get_bytes(), True)
         # verify the signature by SHA'ing the data and encrypting it using the
         # public key.  some wackiness ensues where we "pkcs1imify" the 20-byte
         # hash into a string as long as the RSA key.

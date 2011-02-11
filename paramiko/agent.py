@@ -79,8 +79,8 @@ class Agent:
             raise SSHException('could not get keys from ssh-agent')
         keys = []
         for i in range(result.get_int()):
-            keys.append(AgentKey(self, result.get_string()))
-            result.get_string()
+            keys.append(AgentKey(self, result.get_bytes()))
+            result.get_bytes()
         self.keys = tuple(keys)
 
     def close(self):
@@ -131,7 +131,7 @@ class AgentKey(PKey):
     def __init__(self, agent, blob):
         self.agent = agent
         self.blob = blob
-        self.name = Message(blob).get_string()
+        self.name = Message(blob).get_bytes()
 
     def __str__(self):
         return self.blob
@@ -148,4 +148,4 @@ class AgentKey(PKey):
         ptype, result = self.agent._send_message(msg)
         if ptype != SSH2_AGENT_SIGN_RESPONSE:
             raise SSHException('key cannot be used for signing')
-        return result.get_string()
+        return result.get_bytes()

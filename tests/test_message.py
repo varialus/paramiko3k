@@ -60,9 +60,9 @@ class MessageTest (unittest.TestCase):
         msg = Message(self.__a)
         self.assertEquals(msg.get_int(), 23)
         self.assertEquals(msg.get_int(), 123789456)
-        self.assertEquals(msg.get_string(), b'q')
-        self.assertEquals(msg.get_string(), b'hello')
-        self.assertEquals(msg.get_string(), b'x' * 1000)
+        self.assertEquals(msg.get_bytes(), b'q')
+        self.assertEquals(msg.get_bytes(), b'hello')
+        self.assertEquals(msg.get_bytes(), b'x' * 1000)
 
         msg = Message(self.__b)
         self.assertEquals(msg.get_boolean(), True)

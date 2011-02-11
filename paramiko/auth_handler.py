@@ -175,7 +175,7 @@ class AuthHandler (object):
         return []
 
     def _parse_service_request(self, m):
-        service = m.get_string()
+        service = m.get_bytes()
         if self.transport.server_mode and (service == 'ssh-userauth'):
             # accepted
             m = Message()
@@ -187,7 +187,7 @@ class AuthHandler (object):
         self._disconnect_service_not_available()
 
     def _parse_service_accept(self, m):
-        service = m.get_string()
+        service = m.get_bytes()
         if service == 'ssh-userauth':
             self.transport._log(DEBUG, 'userauth is OK')
             m = Message()
@@ -266,9 +266,9 @@ class AuthHandler (object):
         if self.authenticated:
             # ignore
             return
-        username = m.get_string()
-        service = m.get_string()
-        method = m.get_string()
+        username = m.get_bytes()
+        service = m.get_bytes()
+        method = m.get_bytes()
         self.transport._log(DEBUG, 'Auth request (type=%s) service=%s, username=%s' % (method, service, username))
         if service != 'ssh-connection':
             self._disconnect_service_not_available()
@@ -283,7 +283,7 @@ class AuthHandler (object):
             result = self.transport.server_object.check_auth_none(username)
         elif method == 'password':
             changereq = m.get_boolean()
-            password = m.get_string()
+            password = m.get_bytes()
             try:
                 password = password.decode('UTF-8')
             except UnicodeError:
@@ -294,7 +294,7 @@ class AuthHandler (object):
                 # always treated as failure, since we don't support changing passwords, but collect
                 # the list of valid auth types from the callback anyway
                 self.transport._log(DEBUG, 'Auth request to change passwords (rejected)')
-                newpassword = m.get_string()
+                newpassword = m.get_bytes()
                 try:
                     newpassword = newpassword.decode('UTF-8', 'replace')
                 except UnicodeError:
@@ -304,8 +304,8 @@ class AuthHandler (object):
                 result = self.transport.server_object.check_auth_password(username, password)
         elif method == 'publickey':
             sig_attached = m.get_boolean()
-            keytype = m.get_string()
-            keyblob = m.get_string()
+            keytype = m.get_bytes()
+            keyblob = m.get_bytes()
             try:
                 key = self.transport._key_info[keytype](Message(keyblob))
             except SSHException as e:
@@ -330,14 +330,14 @@ class AuthHandler (object):
                     m.add_string(keyblob)
                     self.transport._send_message(m)
                     return
-                sig = Message(m.get_string())
+                sig = Message(m.get_bytes())
                 blob = self._get_session_blob(key, service, username)
                 if not key.verify_ssh_sig(blob, sig):
                     self.transport._log(INFO, 'Auth rejected: invalid signature')
                     result = AUTH_FAILED
         elif method == 'keyboard-interactive':
-            lang = m.get_string()
-            submethods = m.get_string()
+            lang = m.get_bytes()
+            submethods = m.get_bytes()
             result = self.transport.server_object.check_auth_interactive(username, submethods)
             if isinstance(result, InteractiveQuery):
                 # make interactive query instead of response
@@ -374,21 +374,21 @@ class AuthHandler (object):
             self.auth_event.set()
 
     def _parse_userauth_banner(self, m):
-        banner = m.get_string()
-        lang = m.get_string()
+        banner = m.get_bytes()
+        lang = m.get_bytes()
         self.transport._log(INFO, 'Auth banner: ' + banner)
         # who cares.
     
     def _parse_userauth_info_request(self, m):
         if self.auth_method != 'keyboard-interactive':
             raise SSHException('Illegal info request from server')
-        title = m.get_string()
-        instructions = m.get_string()
-        m.get_string()  # lang
+        title = m.get_bytes()
+        instructions = m.get_bytes()
+        m.get_bytes()  # lang
         prompts = m.get_int()
         prompt_list = []
         for i in range(prompts):
-            prompt_list.append((m.get_string(), m.get_boolean()))
+            prompt_list.append((m.get_bytes(), m.get_boolean()))
         response_list = self.interactive_handler(title, instructions, prompt_list)
         
         m = Message()
@@ -404,7 +404,7 @@ class AuthHandler (object):
         n = m.get_int()
         responses = []
         for i in range(n):
-            responses.append(m.get_string())
+            responses.append(m.get_bytes())
         result = self.transport.server_object.check_auth_interactive_response(responses)
         if isinstance(type(result), InteractiveQuery):
             # make interactive query instead of response

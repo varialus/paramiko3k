@@ -313,10 +313,10 @@ class HostKeys (collections.MutableMapping):
         else:
             if salt.startswith('|1|'):
                 salt = salt.split('|')[2]
-            salt = base64.decodebytes(salt)
+            salt = base64.decodebytes(salt.encode('ascii'))
         assert len(salt) == SHA.digest_size
-        hmac = HMAC.HMAC(salt, hostname, SHA).digest()
-        hostkey = '|1|%s|%s' % (base64.encodestring(salt), base64.encodestring(hmac))
+        hmac = HMAC.HMAC(salt, hostname.encode('ascii'), SHA).digest()
+        hostkey = '|1|%s|%s' % (base64.encodebytes(salt).decode('ascii'), base64.encodebytes(hmac).decode('ascii'))
         return hostkey.replace('\n', '')
     hash_host = staticmethod(hash_host)
 

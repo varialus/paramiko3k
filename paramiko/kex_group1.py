@@ -89,11 +89,11 @@ class KexGroup1(object):
 
     def _parse_kexdh_reply(self, m):
         # client mode
-        host_key = m.get_string()
+        host_key = m.get_bytes()
         self.f = m.get_mpint()
         if (self.f < 1) or (self.f > P - 1):
             raise SSHException('Server kex "f" is out of range')
-        sig = m.get_string()
+        sig = m.get_bytes()
         K = pow(self.f, self.x, P)
         # okay, build up the hash H of (V_C || V_S || I_C || I_S || K_S || e || f || K)
         hm = Message()

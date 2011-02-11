@@ -940,12 +940,12 @@ class Channel (object):
             # passed from _feed_extended
             s = m
         else:
-            s = m.get_string()
+            s = m.get_bytes()
         self.in_buffer.feed(s)
 
     def _feed_extended(self, m):
         code = m.get_int()
-        s = m.get_string()
+        s = m.get_bytes()
         if code != 1:
             self._log(ERROR, 'unknown extended_data type %d; discarding' % code)
             return
@@ -966,7 +966,7 @@ class Channel (object):
             self.lock.release()
 
     def _handle_request(self, m):
-        key = m.get_string()
+        key = m.get_bytes()
         want_reply = m.get_boolean()
         server = self.transport.server_object
         ok = False
@@ -978,12 +978,12 @@ class Channel (object):
             # ignore
             ok = True
         elif key == 'pty-req':
-            term = m.get_string()
+            term = m.get_bytes()
             width = m.get_int()
             height = m.get_int()
             pixelwidth = m.get_int()
             pixelheight = m.get_int()
-            modes = m.get_string()
+            modes = m.get_bytes()
             if server is None:
                 ok = False
             else:
@@ -995,13 +995,13 @@ class Channel (object):
             else:
                 ok = server.check_channel_shell_request(self)
         elif key == 'exec':
-            cmd = m.get_string()
+            cmd = m.get_bytes()
             if server is None:
                 ok = False
             else:
                 ok = server.check_channel_exec_request(self, cmd)
         elif key == 'subsystem':
-            name = m.get_string()
+            name = m.get_bytes()
             if server is None:
                 ok = False
             else:
@@ -1018,8 +1018,8 @@ class Channel (object):
                                                                 pixelheight)
         elif key == 'x11-req':
             single_connection = m.get_boolean()
-            auth_proto = m.get_string()
-            auth_cookie = m.get_string()
+            auth_proto = m.get_bytes()
+            auth_cookie = m.get_bytes()
             screen_number = m.get_int()
             if server is None:
                 ok = False

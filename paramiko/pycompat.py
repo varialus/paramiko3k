@@ -16,6 +16,9 @@
 # along with Paramiko; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 
+
+# if python 3
+
 def byt(x):
     """
     The bytes analog of the byt() function.
@@ -23,18 +26,13 @@ def byt(x):
     """
     return bytes((x,))
 
-# for Python 2
-#byt=chr
-
-
-def safeord(x):
+def bytord(x):
     """
-    An ord() function that passes integers through unmodified.
-    
-    This help manage the differences between element accesses on bytes between Python 2 and 3.
-    (Python 3 produces int, Python 2 produces str)
+    Ordinal value of a byte extracted from bytes
     """
-    if isinstance(x, int):
-        return x
-    else:
-        return ord(x)
+    return x
+
+# elif Python 2
+#byt   =chr
+#bytord=ord
+

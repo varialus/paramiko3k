@@ -79,15 +79,18 @@ class Message (io.BytesIO):
         self.rewind()
         return self.read(position)
 
-    def get_bytes(self, n):
+    def get_bytes(self, n=None):
         """
         Return the next C{n} bytes of the Message, without decomposing into
         an int, string, etc.  Just the raw bytes are returned.
+        If C{n} is not provided, it is first read as an int from the message
 
         @return: a string of the next C{n} bytes of the Message, or a string
             of C{n} zero bytes, if there aren't C{n} bytes remaining.
-        @rtype: string
+        @rtype: bytes
         """
+        if n is None:
+            n=self.get_int()
         b = self.read(n)
         if len(b) < n:
             return b + '\x00' * (n - len(b))
@@ -139,18 +142,18 @@ class Message (io.BytesIO):
         @return: an arbitrary-length integer.
         @rtype: long
         """
-        return util.inflate_long(self.get_string())
+        return util.inflate_long(self.get_bytes())
 
-    def get_string(self):
-        """
-        Fetch a string from the stream.  This could be a byte string and may
-        contain unprintable characters.  (It's not unheard of for a string to
-        contain another byte-stream Message.)
+    #def get_string(self):
+        #"""
+        #Fetch a string from the stream.  This could be a byte string and may
+        #contain unprintable characters.  (It's not unheard of for a string to
+        #contain another byte-stream Message.)
 
-        @return: a string.
-        @rtype: string
-        """
-        return self.get_bytes(self.get_int())
+        #@return: a string.
+        #@rtype: string
+        #"""
+        #return self.get_bytes(self.get_int())
 
     def get_list(self):
         """
@@ -160,7 +163,7 @@ class Message (io.BytesIO):
         @return: a list of strings.
         @rtype: list of strings
         """
-        return self.get_string().split(b',')
+        return self.get_bytes().split(b',')
 
     def add_bytes(self, b):
         """
