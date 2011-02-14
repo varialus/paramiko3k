@@ -1353,9 +1353,9 @@ class Transport (threading.Thread):
         @since: 1.5.2
         """
         if compress:
-            self._preferred_compression = ( 'zlib@openssh.com', 'zlib', 'none' )
+            self._preferred_compression = ( b'zlib@openssh.com', b'zlib', b'none' )
         else:
-            self._preferred_compression = ( 'none', )
+            self._preferred_compression = ( b'none', )
 
     def getpeername(self):
         """

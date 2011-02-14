@@ -123,11 +123,12 @@ class HostKeys (collections.MutableMapping):
 
         @param hostname: the hostname (or IP) to add
         @type hostname: str
-        @param keytype: key type (C{"ssh-rsa"} or C{"ssh-dss"})
+        @param keytype: key type (C{b"ssh-rsa"} or C{b"ssh-dss"})
         @type keytype: str
         @param key: the key to add
         @type key: L{PKey}
         """
+        assert(keytype in [b'ssh-rsa', b'ssh-dss'])
         for e in self._entries:
             if (hostname in e.hostnames) and (e.key.get_name() == keytype):
                 e.key = key
