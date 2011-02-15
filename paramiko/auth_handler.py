@@ -44,7 +44,7 @@ class AuthHandler (object):
         self.username = None
         self.authenticated = False
         self.auth_event = None
-        self.auth_method = ''
+        self.auth_method = b''
         self.password = None
         self.private_key = None
         self.interactive_handler = None
@@ -66,7 +66,7 @@ class AuthHandler (object):
         self.transport.lock.acquire()
         try:
             self.auth_event = event
-            self.auth_method = 'none'
+            self.auth_method = b'none'
             self.username = username
             self._request_auth()
         finally:
@@ -76,7 +76,7 @@ class AuthHandler (object):
         self.transport.lock.acquire()
         try:
             self.auth_event = event
-            self.auth_method = 'publickey'
+            self.auth_method = b'publickey'
             self.username = username
             self.private_key = key
             self._request_auth()
@@ -87,7 +87,7 @@ class AuthHandler (object):
         self.transport.lock.acquire()
         try:
             self.auth_event = event
-            self.auth_method = 'password'
+            self.auth_method = b'password'
             self.username = username
             self.password = password
             self._request_auth()
@@ -101,7 +101,7 @@ class AuthHandler (object):
         self.transport.lock.acquire()
         try:
             self.auth_event = event
-            self.auth_method = 'keyboard-interactive'
+            self.auth_method = b'keyboard-interactive'
             self.username = username
             self.interactive_handler = handler
             self.submethods = submethods
@@ -127,8 +127,8 @@ class AuthHandler (object):
         m = Message()
         m.add_byte(byt(MSG_DISCONNECT))
         m.add_int(DISCONNECT_SERVICE_NOT_AVAILABLE)
-        m.add_string('Service not available')
-        m.add_string('en')
+        m.add_string(b'Service not available')
+        m.add_string(b'en')
         self.transport._send_message(m)
         self.transport.close()
 
@@ -136,8 +136,8 @@ class AuthHandler (object):
         m = Message()
         m.add_byte(byt(MSG_DISCONNECT))
         m.add_int(DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE)
-        m.add_string('No more auth methods available')
-        m.add_string('en')
+        m.add_string(b'No more auth methods available')
+        m.add_string(b'en')
         self.transport._send_message(m)
         self.transport.close()
 
@@ -147,7 +147,7 @@ class AuthHandler (object):
         m.add_byte(byt(MSG_USERAUTH_REQUEST))
         m.add_string(username)
         m.add_string(service)
-        m.add_string('publickey')
+        m.add_string(b'publickey')
         m.add_boolean(1)
         m.add_string(key.get_name())
         m.add_string(msg.getvalue())
@@ -195,7 +195,7 @@ class AuthHandler (object):
             m.add_string(self.username)
             m.add_string(b'ssh-connection')
             m.add_string(self.auth_method)
-            if self.auth_method == 'bpassword':
+            if self.auth_method == b'password':
                 m.add_boolean(False)
                 password = self.password
                 if isinstance(password, str):
@@ -221,6 +221,7 @@ class AuthHandler (object):
 
     def _send_auth_result(self, username, method, result):
         # okay, send result
+        assert(isinstance(username,str))
         m = Message()
         if result == AUTH_SUCCESSFUL:
             self.transport._log(INFO, 'Auth granted (%s).' % method)
@@ -229,7 +230,9 @@ class AuthHandler (object):
         else:
             self.transport._log(INFO, 'Auth rejected (%s).' % method)
             m.add_byte(byt(MSG_USERAUTH_FAILURE))
-            m.add_string(self.transport.server_object.get_allowed_auths(username))
+            auths = self.transport.server_object.get_allowed_auths(username)
+            assert(isinstance(auths,bytes))
+            m.add_string(auths)
             if result == AUTH_PARTIALLY_SUCCESSFUL:
                 m.add_boolean(1)
             else:
@@ -259,14 +262,14 @@ class AuthHandler (object):
             # er, uh... what?
             m = Message()
             m.add_byte(byt(MSG_USERAUTH_FAILURE))
-            m.add_string('none')
+            m.add_string(b'none')
             m.add_boolean(0)
             self.transport._send_message(m)
             return
         if self.authenticated:
             # ignore
             return
-        username = m.get_bytes()
+        username = m.get_bytes().decode('UTF-8')
         service = m.get_bytes()
         method = m.get_bytes()
         self.transport._log(DEBUG, 'Auth request (type=%s) service=%s, username=%s' % (method, service, username))
@@ -279,9 +282,9 @@ class AuthHandler (object):
             return
         self.auth_username = username
 
-        if method == 'none':
+        if method == b'none':
             result = self.transport.server_object.check_auth_none(username)
-        elif method == 'password':
+        elif method == b'password':
             changereq = m.get_boolean()
             password = m.get_bytes()
             try:
@@ -302,7 +305,7 @@ class AuthHandler (object):
                 result = AUTH_FAILED
             else:
                 result = self.transport.server_object.check_auth_password(username, password)
-        elif method == 'publickey':
+        elif method == b'publickey':
             sig_attached = m.get_boolean()
             keytype = m.get_bytes()
             keyblob = m.get_bytes()
@@ -335,7 +338,7 @@ class AuthHandler (object):
                 if not key.verify_ssh_sig(blob, sig):
                     self.transport._log(INFO, 'Auth rejected: invalid signature')
                     result = AUTH_FAILED
-        elif method == 'keyboard-interactive':
+        elif method == b'keyboard-interactive':
             lang = m.get_bytes()
             submethods = m.get_bytes()
             result = self.transport.server_object.check_auth_interactive(username, submethods)
@@ -380,7 +383,7 @@ class AuthHandler (object):
         # who cares.
     
     def _parse_userauth_info_request(self, m):
-        if self.auth_method != 'keyboard-interactive':
+        if self.auth_method != b'keyboard-interactive':
             raise SSHException('Illegal info request from server')
         title = m.get_bytes()
         instructions = m.get_bytes()
@@ -410,7 +413,7 @@ class AuthHandler (object):
             # make interactive query instead of response
             self._interactive_query(result)
             return
-        self._send_auth_result(self.auth_username, 'keyboard-interactive', result)
+        self._send_auth_result(self.auth_username, b'keyboard-interactive', result)
         
 
     _handler_table = {

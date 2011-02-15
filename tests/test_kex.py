@@ -20,6 +20,7 @@
 Some unit tests for the key exchange protocols.
 """
 
+import io
 from binascii import hexlify
 import unittest
 import paramiko.util
@@ -39,7 +40,7 @@ class FakeKey (object):
     def getvalue(self):
         return b'fake-key'
     def sign_ssh_data(self, randpool, H):
-        return b'fake-sig'
+        return io.BytesIO(b'fake-sig')
 
 
 class FakeModulusPack (object):

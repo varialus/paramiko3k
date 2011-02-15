@@ -39,21 +39,21 @@ class NullServer (ServerInterface):
     
     def get_allowed_auths(self, username):
         if username == 'slowdive':
-            return 'publickey,password'
+            return b'publickey,password'
         if username == 'paranoid':
             if not self.paranoid_did_password and not self.paranoid_did_public_key:
-                return 'publickey,password'
+                return b'publickey,password'
             elif self.paranoid_did_password:
-                return 'publickey'
+                return b'publickey'
             else:
-                return 'password'
+                return b'password'
         if username == 'commie':
-            return 'keyboard-interactive'
+            return b'keyboard-interactive'
         if username == 'utf8':
-            return 'password'
+            return b'password'
         if username == 'non-utf8':
-            return 'password'
-        return 'publickey'
+            return b'password'
+        return b'publickey'
 
     def check_auth_password(self, username, password):
         if (username == 'slowdive') and (password == 'pygmalion'):

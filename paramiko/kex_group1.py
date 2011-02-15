@@ -131,6 +131,6 @@ class KexGroup1(object):
         m.add_byte(byt(_MSG_KEXDH_REPLY))
         m.add_string(key)
         m.add_mpint(self.f)
-        m.add_string(sig)
+        m.add_string(sig.getvalue())
         self.transport._send_message(m)
         self.transport._activate_outbound()
