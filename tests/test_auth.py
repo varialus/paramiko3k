@@ -136,7 +136,7 @@ class AuthTest (unittest.TestCase):
         except:
             etype, evalue, etb = sys.exc_info()
             self.assertEquals(BadAuthenticationType, etype)
-            self.assertEquals(['publickey'], evalue.allowed_types)
+            self.assertEquals([b'publickey'], evalue.allowed_types)
 
     def test_2_bad_password(self):
         """
@@ -161,7 +161,7 @@ class AuthTest (unittest.TestCase):
         self.start_server()
         self.tc.connect(hostkey=self.public_host_key)
         remain = self.tc.auth_password(username='paranoid', password='paranoid')
-        self.assertEquals(['publickey'], remain)
+        self.assertEquals([b'publickey'], remain)
         key = DSSKey.from_private_key_file('tests/test_dss.key')
         remain = self.tc.auth_publickey(username='paranoid', key=key)
         self.assertEquals([], remain)

@@ -274,7 +274,7 @@ class Packetizer (object):
         n = buf.index(b'\n')
         self.__remainder = buf[n+1:]
         buf = buf[:n]
-        if (len(buf) > 0) and (buf[-1] == b'\r'):
+        if (len(buf) > 0) and (buf[-1:] == b'\r'):
             buf = buf[:-1]
         return buf
 

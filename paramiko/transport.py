@@ -652,7 +652,7 @@ class Transport (threading.Thread):
         @raise SSHException: if the request is rejected or the session ends
             prematurely
         """
-        return self.open_channel('session')
+        return self.open_channel(b'session')
 
     def open_x11_channel(self, src_addr=None):
         """
@@ -668,7 +668,7 @@ class Transport (threading.Thread):
         @raise SSHException: if the request is rejected or the session ends
             prematurely
         """
-        return self.open_channel('x11', src_addr=src_addr)
+        return self.open_channel(b'x11', src_addr=src_addr)
 
     def open_forwarded_tcpip_channel(self, xxx_todo_changeme, xxx_todo_changeme1):
         """
@@ -683,7 +683,7 @@ class Transport (threading.Thread):
         """
         (src_addr, src_port) = xxx_todo_changeme
         (dest_addr, dest_port) = xxx_todo_changeme1
-        return self.open_channel('forwarded-tcpip', (dest_addr, dest_port), (src_addr, src_port))
+        return self.open_channel(b'forwarded-tcpip', (dest_addr, dest_port), (src_addr, src_port))
 
     def open_channel(self, kind, dest_addr=None, src_addr=None):
         """
@@ -715,17 +715,18 @@ class Transport (threading.Thread):
             chanid = self._next_channel()
             m = Message()
             m.add_byte(byt(MSG_CHANNEL_OPEN))
+            assert(isinstance(kind,bytes))
             m.add_string(kind)
             m.add_int(chanid)
             m.add_int(self.window_size)
             m.add_int(self.max_packet_size)
-            if (kind == 'forwarded-tcpip') or (kind == 'direct-tcpip'):
-                m.add_string(dest_addr[0])
+            if (kind == b'forwarded-tcpip') or (kind == b'direct-tcpip'):
+                m.add_string(dest_addr[0].encode('utf-8'))
                 m.add_int(dest_addr[1])
-                m.add_string(src_addr[0])
+                m.add_string(src_addr[0].encode('utf-8'))
                 m.add_int(src_addr[1])
-            elif kind == 'x11':
-                m.add_string(src_addr[0])
+            elif kind == b'x11':
+                m.add_string(src_addr[0].encode('utf-8'))
                 m.add_int(src_addr[1])
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
@@ -784,9 +785,9 @@ class Transport (threading.Thread):
         """
         if not self.active:
             raise SSHException('SSH session not active')
-        address = str(address)
-        port = int(port)
-        response = self.global_request('tcpip-forward', (address, port), wait=True)
+        assert isinstance(address, str)
+        assert isinstance(port, int)
+        response = self.global_request(b'tcpip-forward', (address.encode('utf-8'), port), wait=True)
         if response is None:
             raise SSHException('TCP forwarding request denied')
         if port == 0:
@@ -814,7 +815,7 @@ class Transport (threading.Thread):
         if not self.active:
             return
         self._tcp_handler = None
-        self.global_request('cancel-tcpip-forward', (address, port), wait=True)
+        self.global_request(b'cancel-tcpip-forward', (address.encode('utf-8'), port), wait=True)
 
     def open_sftp_client(self):
         """
@@ -884,7 +885,7 @@ class Transport (threading.Thread):
         @type interval: int
         """
         self.packetizer.set_keepalive(interval,
-            lambda x=weakref.proxy(self): x.global_request('keepalive@lag.net', wait=False))
+            lambda x=weakref.proxy(self): x.global_request(b'keepalive@lag.net', wait=False))
 
     def global_request(self, kind, data=None, wait=True):
         """
@@ -993,7 +994,7 @@ class Transport (threading.Thread):
         # check host key if we were given one
         if (hostkey is not None):
             key = self.get_remote_server_key()
-            if (key.get_name() != hostkey.get_name()) or (msg.getvalue() != str(hostkey)):
+            if (key.get_name() != hostkey.get_name()) or (key.getvalue() != hostkey.getvalue()):
                 self._log(DEBUG, 'Bad host key from server')
                 self._log(DEBUG, 'Expected: %s: %s' % (hostkey.get_name(), repr(str(hostkey))))
                 self._log(DEBUG, 'Got     : %s: %s' % (key.get_name(), repr(msg.getvalue())))
@@ -1167,7 +1168,7 @@ class Transport (threading.Thread):
             return self.auth_handler.wait_for_response(my_event)
         except BadAuthenticationType as x:
             # if password auth isn't allowed, but keyboard-interactive *is*, try to fudge it
-            if not fallback or ('keyboard-interactive' not in x.allowed_types):
+            if not fallback or (b'keyboard-interactive' not in x.allowed_types):
                 raise
             try:
                 def handler(title, instructions, fields):
@@ -1984,8 +1985,8 @@ class Transport (threading.Thread):
         initial_window_size = m.get_int()
         max_packet_size = m.get_int()
         reject = False
-        if (kind == 'x11') and (self._x11_handler is not None):
-            origin_addr = m.get_bytes()
+        if (kind == b'x11') and (self._x11_handler is not None):
+            origin_addr = m.get_bytes().decode('utf-8')
             origin_port = m.get_int()
             self._log(DEBUG, 'Incoming x11 connection from %s:%d' % (origin_addr, origin_port))
             self.lock.acquire()
@@ -1994,9 +1995,9 @@ class Transport (threading.Thread):
             finally:
                 self.lock.release()
         elif (kind == b'forwarded-tcpip') and (self._tcp_handler is not None):
-            server_addr = m.get_bytes()
+            server_addr = m.get_bytes().decode('utf-8')
             server_port = m.get_int()
-            origin_addr = m.get_bytes()
+            origin_addr = m.get_bytes().decode('utf-8')
             origin_port = m.get_int()
             self._log(DEBUG, 'Incoming tcp forwarded connection from %s:%d' % (origin_addr, origin_port))
             self.lock.acquire()
@@ -2016,9 +2017,9 @@ class Transport (threading.Thread):
                 self.lock.release()
             if kind == b'direct-tcpip':
                 # handle direct-tcpip requests comming from the client
-                dest_addr = m.get_bytes()
+                dest_addr = m.get_bytes().decode('utf-8')
                 dest_port = m.get_int()
-                origin_addr = m.get_bytes()
+                origin_addr = m.get_bytes().decode('utf-8')
                 origin_port = m.get_int()
                 reason = self.server_object.check_channel_direct_tcpip_request(
                                 my_chanid, (origin_addr, origin_port),
@@ -2033,8 +2034,8 @@ class Transport (threading.Thread):
             msg.add_byte(byt(MSG_CHANNEL_OPEN_FAILURE))
             msg.add_int(chanid)
             msg.add_int(reason)
-            msg.add_string('')
-            msg.add_string('en')
+            msg.add_string(b'')
+            msg.add_string(b'en')
             self._send_message(msg)
             return
 

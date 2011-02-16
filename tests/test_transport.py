@@ -72,7 +72,7 @@ class NullServer (ServerInterface):
         return OPEN_SUCCEEDED
 
     def check_channel_exec_request(self, channel, command):
-        if command != 'yes':
+        if command != b'yes':
             return False
         return True
 
@@ -190,8 +190,8 @@ class TransportTest (unittest.TestCase):
         event.wait(1.0)
         self.assert_(event.isSet())
         self.assert_(self.ts.is_active())
-        self.assertEquals(b'slowdive', self.tc.get_username())
-        self.assertEquals(b'slowdive', self.ts.get_username())
+        self.assertEquals('slowdive', self.tc.get_username())
+        self.assertEquals('slowdive', self.ts.get_username())
         self.assertEquals(True, self.tc.is_authenticated())
         self.assertEquals(True, self.ts.is_authenticated())
 
@@ -262,10 +262,10 @@ class TransportTest (unittest.TestCase):
         schan.send_stderr(b'This is on stderr.\n')
         schan.close()
 
-        f = chan.makefile()
+        f = chan.makefile(mode='br')
         self.assertEquals(b'Hello there.\n', f.readline())
         self.assertEquals(b'', f.readline())
-        f = chan.makefile_stderr()
+        f = chan.makefile_stderr(mode='br')
         self.assertEquals(b'This is on stderr.\n', f.readline())
         self.assertEquals(b'', f.readline())
         
@@ -278,7 +278,7 @@ class TransportTest (unittest.TestCase):
         schan.close()
 
         chan.set_combine_stderr(True)        
-        f = chan.makefile()
+        f = chan.makefile(mode='br')
         self.assertEquals(b'Hello there.\n', f.readline())
         self.assertEquals(b'This is on stderr.\n', f.readline())
         self.assertEquals(b'', f.readline())
@@ -292,7 +292,7 @@ class TransportTest (unittest.TestCase):
         chan.invoke_shell()
         schan = self.ts.accept(1.0)
         chan.send(b'communist j. cat\n')
-        f = schan.makefile()
+        f = schan.makefile(mode='br')
         self.assertEquals(b'communist j. cat\n', f.readline())
         chan.close()
         self.assertEquals(b'', f.readline())
@@ -325,7 +325,7 @@ class TransportTest (unittest.TestCase):
         schan.send_exit_status(23)
         schan.close()
         
-        f = chan.makefile()
+        f = chan.makefile(mode='br')
         self.assertEquals(b'Hello there.\n', f.readline())
         self.assertEquals(b'', f.readline())
         count = 0
@@ -383,7 +383,7 @@ class TransportTest (unittest.TestCase):
         self.assertEquals([chan], r)
         self.assertEquals([], w)
         self.assertEquals([], e)
-        self.assertEquals('', chan.recv(16))
+        self.assertEquals(b'', chan.recv(16))
         
         # make sure the pipe is still open for now...
         p = chan._pipe
@@ -459,9 +459,9 @@ class TransportTest (unittest.TestCase):
         self.assertEquals(cookie, self.server._x11_auth_cookie)
         self.assertEquals(True, self.server._x11_single_connection)
         
-        x11_server = self.ts.open_x11_channel((b'localhost', 6093))
+        x11_server = self.ts.open_x11_channel(('localhost', 6093))
         x11_client = self.tc.accept()
-        self.assertEquals(b'localhost', requested[0][0])
+        self.assertEquals('localhost', requested[0][0])
         self.assertEquals(6093, requested[0][1])
         
         x11_server.send(b'hello')
@@ -479,7 +479,7 @@ class TransportTest (unittest.TestCase):
         """
         self.setup_test_server()
         chan = self.tc.open_session()
-        chan.exec_command('yes')
+        chan.exec_command(b'yes')
         schan = self.ts.accept(1.0)
         
         requested = []
@@ -490,11 +490,11 @@ class TransportTest (unittest.TestCase):
             requested.append((server_addr, server_port))
             self.tc._queue_incoming_channel(c)
             
-        port = self.tc.request_port_forward(b'127.0.0.1', 0, handler)
+        port = self.tc.request_port_forward('127.0.0.1', 0, handler)
         self.assertEquals(port, self.server._listen.getsockname()[1])
 
         cs = socket.socket()
-        cs.connect((b'127.0.0.1', port))
+        cs.connect(('127.0.0.1', port))
         ss, _ = self.server._listen.accept()
         sch = self.ts.open_forwarded_tcpip_channel(ss.getsockname(), ss.getpeername())
         cch = self.tc.accept()
@@ -507,7 +507,7 @@ class TransportTest (unittest.TestCase):
         cs.close()
         
         # now cancel it.
-        self.tc.cancel_port_forward(b'127.0.0.1', port)
+        self.tc.cancel_port_forward('127.0.0.1', port)
         self.assertTrue(self.server._listen is None)
 
     def test_F_port_forwarding(self):
@@ -522,11 +522,11 @@ class TransportTest (unittest.TestCase):
         
         # open a port on the "server" that the client will ask to forward to.
         greeting_server = socket.socket()
-        greeting_server.bind((b'127.0.0.1', 0))
+        greeting_server.bind(('127.0.0.1', 0))
         greeting_server.listen(1)
         greeting_port = greeting_server.getsockname()[1]
 
-        cs = self.tc.open_channel(b'direct-tcpip', (b'127.0.0.1', greeting_port), (b'', 9000))
+        cs = self.tc.open_channel(b'direct-tcpip', ('127.0.0.1', greeting_port), ('', 9000))
         sch = self.ts.accept(1.0)
         cch = socket.socket()
         cch.connect(self.server._tcpip_dest)
@@ -590,7 +590,7 @@ class TransportTest (unittest.TestCase):
 
         self.assertEquals(chan.send_ready(), True)
         total = 0
-        K = '*' * 1024
+        K = b'*' * 1024
         while total < 1024 * 1024:
             chan.send(K)
             total += len(K)
@@ -668,7 +668,7 @@ class TransportTest (unittest.TestCase):
                             break
                         self.watchdog_event.set()
                         #print i, "SEND"
-                        self.chan.send("x" * 2048)
+                        self.chan.send(b"x" * 2048)
                 finally:
                     self.done_event.set()
                     self.watchdog_event.set()
@@ -698,7 +698,7 @@ class TransportTest (unittest.TestCase):
         self.ts.packetizer.REKEY_BYTES = 2048
         
         chan = self.tc.open_session()
-        chan.exec_command('yes')
+        chan.exec_command(b'yes')
         schan = self.ts.accept(1.0)
 
         # Monkey patch the client's Transport._handler_table so that the client

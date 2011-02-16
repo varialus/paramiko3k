@@ -26,6 +26,7 @@ import time
 import unittest
 import weakref
 from binascii import hexlify
+import gc
 
 import paramiko
 
@@ -34,11 +35,11 @@ class NullServer (paramiko.ServerInterface):
 
     def get_allowed_auths(self, username):
         if username == 'slowdive':
-            return 'publickey,password'
-        return 'publickey'
+            return b'publickey,password'
+        return b'publickey'
 
     def check_auth_password(self, username, password):
-        if (username == b'slowdive') and (password == b'pygmalion'):
+        if (username == 'slowdive') and (password == 'pygmalion'):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
@@ -51,7 +52,7 @@ class NullServer (paramiko.ServerInterface):
         return paramiko.OPEN_SUCCEEDED
 
     def check_channel_exec_request(self, channel, command):
-        if command != 'yes':
+        if command != b'yes':
             return False
         return True
 
@@ -100,17 +101,17 @@ class SSHClientTest (unittest.TestCase):
         self.assertEquals('slowdive', self.ts.get_username())
         self.assertEquals(True, self.ts.is_authenticated())
 
-        stdin, stdout, stderr = self.tc.exec_command('yes')
+        stdin, stdout, stderr = self.tc.exec_command(b'yes')
         schan = self.ts.accept(1.0)
 
-        schan.send('Hello there.\n')
-        schan.send_stderr('This is on stderr.\n')
+        schan.send(b'Hello there.\n')
+        schan.send_stderr(b'This is on stderr.\n')
         schan.close()
 
-        self.assertEquals('Hello there.\n', stdout.readline())
-        self.assertEquals('', stdout.readline())
-        self.assertEquals('This is on stderr.\n', stderr.readline())
-        self.assertEquals('', stderr.readline())
+        self.assertEquals(b'Hello there.\n', stdout.readline())
+        self.assertEquals(b'', stdout.readline())
+        self.assertEquals(b'This is on stderr.\n', stderr.readline())
+        self.assertEquals(b'', stderr.readline())
 
         stdin.close()
         stdout.close()
@@ -133,17 +134,17 @@ class SSHClientTest (unittest.TestCase):
         self.assertEquals('slowdive', self.ts.get_username())
         self.assertEquals(True, self.ts.is_authenticated())
 
-        stdin, stdout, stderr = self.tc.exec_command('yes')
+        stdin, stdout, stderr = self.tc.exec_command(b'yes')
         schan = self.ts.accept(1.0)
 
-        schan.send('Hello there.\n')
-        schan.send_stderr('This is on stderr.\n')
+        schan.send(b'Hello there.\n')
+        schan.send_stderr(b'This is on stderr.\n')
         schan.close()
 
-        self.assertEquals('Hello there.\n', stdout.readline())
-        self.assertEquals('', stdout.readline())
-        self.assertEquals('This is on stderr.\n', stderr.readline())
-        self.assertEquals('', stderr.readline())
+        self.assertEquals(b'Hello there.\n', stdout.readline())
+        self.assertEquals(b'', stdout.readline())
+        self.assertEquals(b'This is on stderr.\n', stderr.readline())
+        self.assertEquals(b'', stderr.readline())
 
         stdin.close()
         stdout.close()
@@ -184,7 +185,7 @@ class SSHClientTest (unittest.TestCase):
         self.assertEquals('slowdive', self.ts.get_username())
         self.assertEquals(True, self.ts.is_authenticated())
         self.assertEquals(1, len(self.tc.get_host_keys()))
-        self.assertEquals(public_host_key, self.tc.get_host_keys()['[%s]:%d' % (self.addr, self.port)]['ssh-rsa'])
+        self.assertEquals(public_host_key, self.tc.get_host_keys()['[%s]:%d' % (self.addr, self.port)][b'ssh-rsa'])
 
     def test_5_cleanup(self):
         """
@@ -207,6 +208,7 @@ class SSHClientTest (unittest.TestCase):
         self.assert_(p() is not None)
         del self.tc
         # hrm, sometimes p isn't cleared right away.  why is that?
+        gc.collect()
         st = time.time()
         while (time.time() - st < 5.0) and (p() is not None):
             time.sleep(0.1)

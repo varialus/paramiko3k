@@ -339,7 +339,7 @@ class SSHClient (object):
         self._transport.close()
         self._transport = None
 
-    def exec_command(self, command, bufsize=-1):
+    def exec_command(self, command, bufsize=-1, iomode='b'):
         """
         Execute a command on the SSH server.  A new L{Channel} is opened and
         the requested command is executed.  The command's input and output
@@ -355,11 +355,14 @@ class SSHClient (object):
 
         @raise SSHException: if the server fails to execute the command
         """
+        assert isinstance(command, bytes)
+        assert 'w' not in iomode
+        assert 'r' not in iomode
         chan = self._transport.open_session()
         chan.exec_command(command)
-        stdin = chan.makefile('wb', bufsize)
-        stdout = chan.makefile('rb', bufsize)
-        stderr = chan.makefile_stderr('rb', bufsize)
+        stdin = chan.makefile('w'+iomode, bufsize)
+        stdout = chan.makefile('r'+iomode, bufsize)
+        stderr = chan.makefile_stderr('r'+iomode, bufsize)
         return stdin, stdout, stderr
 
     def invoke_shell(self, term='vt100', width=80, height=24):

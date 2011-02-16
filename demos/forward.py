@@ -51,7 +51,7 @@ class Handler (socketserver.BaseRequestHandler):
 
     def handle(self):
         try:
-            chan = self.ssh_transport.open_channel('direct-tcpip',
+            chan = self.ssh_transport.open_channel(b'direct-tcpip',
                                                    (self.chain_host, self.chain_port),
                                                    self.request.getpeername())
         except Exception as e:

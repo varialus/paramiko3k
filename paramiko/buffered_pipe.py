@@ -45,7 +45,7 @@ class BufferedPipe (object):
         self._lock = threading.Lock()
         self._cv = threading.Condition(self._lock)
         self._event = None
-        self._buffer = array.array('B')
+        self._buffer = bytearray()
         self._closed = False
 
     def set_event(self, event):
@@ -75,7 +75,7 @@ class BufferedPipe (object):
         try:
             if self._event is not None:
                 self._event.set()
-            self._buffer.fromstring(data)
+            self._buffer.extend(data)
             self._cv.notifyAll()
         finally:
             self._lock.release()
@@ -142,12 +142,12 @@ class BufferedPipe (object):
 
             # something's in the buffer and we have the lock!
             if len(self._buffer) <= nbytes:
-                out = self._buffer.tostring()
+                out = bytes(self._buffer)
                 del self._buffer[:]
                 if (self._event is not None) and not self._closed:
                     self._event.clear()
             else:
-                out = self._buffer[:nbytes].tostring()
+                out = bytes(self._buffer[:nbytes])
                 del self._buffer[:nbytes]
         finally:
             self._lock.release()
@@ -163,7 +163,7 @@ class BufferedPipe (object):
         """
         self._lock.acquire()
         try:
-            out = self._buffer.tostring()
+            out = bytes(self._buffer)
             del self._buffer[:]
             if (self._event is not None) and not self._closed:
                 self._event.clear()

@@ -26,6 +26,7 @@ import time
 import threading
 import socket
 import os
+import io
 
 from paramiko.common import *
 from paramiko import util
@@ -145,7 +146,7 @@ class Channel (object):
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('pty-req')
+        m.add_string(b'pty-req')
         m.add_boolean(True)
         m.add_string(term)
         m.add_int(width)
@@ -178,7 +179,7 @@ class Channel (object):
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('shell')
+        m.add_string(b'shell')
         m.add_boolean(1)
         self._event_pending()
         self.transport._send_user_message(m)
@@ -205,7 +206,7 @@ class Channel (object):
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('exec')
+        m.add_string(b'exec')
         m.add_boolean(True)
         m.add_string(command)
         self._event_pending()
@@ -232,7 +233,7 @@ class Channel (object):
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('subsystem')
+        m.add_string(b'subsystem')
         m.add_boolean(True)
         m.add_string(subsystem)
         self._event_pending()
@@ -257,7 +258,7 @@ class Channel (object):
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('window-change')
+        m.add_string(b'window-change')
         m.add_boolean(True)
         m.add_int(width)
         m.add_int(height)
@@ -313,7 +314,7 @@ class Channel (object):
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('exit-status')
+        m.add_string(b'exit-status')
         m.add_boolean(False)
         m.add_int(status)
         self.transport._send_user_message(m)
@@ -359,17 +360,19 @@ class Channel (object):
         @type handler: function
         @return: the auth_cookie used
         """
+        assert isinstance(auth_protocol, bytes) or auth_protocol is None
+        assert isinstance(auth_cookie, bytes) or auth_cookie is None
         if self.closed or self.eof_received or self.eof_sent or not self.active:
             raise SSHException('Channel is not open')
         if auth_protocol is None:
-            auth_protocol = 'MIT-MAGIC-COOKIE-1'
+            auth_protocol = b'MIT-MAGIC-COOKIE-1'
         if auth_cookie is None:
             auth_cookie = binascii.hexlify(self.transport.randpool.get_bytes(16))
 
         m = Message()
         m.add_byte(byt(MSG_CHANNEL_REQUEST))
         m.add_int(self.remote_chanid)
-        m.add_string('x11-req')
+        m.add_string(b'x11-req')
         m.add_boolean(True)
         m.add_boolean(single_connection)
         m.add_string(auth_protocol)
@@ -444,7 +447,7 @@ class Channel (object):
         
         @since: 1.1
         """
-        data = ''
+        data = b''
         self.lock.acquire()
         try:
             old = self.combine_stderr
@@ -683,6 +686,7 @@ class Channel (object):
         @raise socket.timeout: if no data could be sent before the timeout set
             by L{settimeout}.
         """
+        assert isinstance(s, bytes)
         size = len(s)
         self.lock.acquire()
         try:
@@ -720,6 +724,7 @@ class Channel (object):
         
         @since: 1.1
         """
+        assert isinstance(s, bytes)
         size = len(s)
         self.lock.acquire()
         try:
@@ -757,6 +762,7 @@ class Channel (object):
             sent, there is no way to determine how much data (if any) was sent.
             This is irritating, but identically follows python's API.
         """
+        assert isinstance(s, bytes)
         while s:
             if self.closed:
                 # this doesn't seem useful, but it is the documented behavior of Socket
@@ -782,6 +788,7 @@ class Channel (object):
             
         @since: 1.1
         """
+        assert isinstance(s, bytes)
         while s:
             if self.closed:
                 raise socket.error('Socket is closed')
@@ -789,18 +796,60 @@ class Channel (object):
             s = s[sent:]
         return None
 
-    def makefile(self, *params):
-        """
-        Return a file-like object associated with this channel.  The optional
-        C{mode} and C{bufsize} arguments are interpreted the same way as by
-        the built-in C{file()} function in python.
+    #def makefile(self, *params):
+        #"""
+        #Return a file-like object associated with this channel.  The optional
+        #C{mode} and C{bufsize} arguments are interpreted the same way as by
+        #the built-in C{file()} function in python.
 
-        @return: object which can be used for python file I/O.
-        @rtype: L{ChannelFile}
-        """
-        return ChannelFile(*([self] + list(params)))
+        #@return: object which can be used for python file I/O.
+        #@rtype: L{ChannelFile}
+        #"""
+        #return ChannelFile(*([self] + list(params)))
+    def makefile(self, mode="r", buffering=None, *,
+                 encoding=None, newline=None, stderr=False):
+        """makefile(...) -> an I/O stream connected to the socket
 
-    def makefile_stderr(self, *params):
+        The arguments are as for io.open() after the filename,
+        except the only mode characters supported are 'r', 'w' and 'b'.
+        The semantics are similar too.  (XXX refactor to share code?)
+        """
+        for c in mode:
+            if c not in {"r", "w", "b"}:
+                raise ValueError("invalid mode %r (only r, w, b allowed)")
+        writing = "w" in mode
+        reading = "r" in mode or not writing
+        assert reading or writing
+        binary = "b" in mode
+        if stderr:
+            recv = reading and self.recv_stderr
+            send = writing and self.send_stderr
+        else:
+            recv = reading and self.recv
+            send = writing and self.send
+        raw = ChannelIO(recv, send)
+        if buffering is None:
+            buffering = -1
+        if buffering < 0:
+            buffering = io.DEFAULT_BUFFER_SIZE
+        if buffering == 0:
+            if not binary:
+                raise ValueError("unbuffered streams must be binary")
+            return raw
+        if reading and writing:
+            buffer = io.BufferedRWPair(raw, raw, buffering)
+        elif reading:
+            buffer = io.BufferedReader(raw, buffering)
+        else:
+            assert writing
+            buffer = io.BufferedWriter(raw, buffering)
+        if binary:
+            return buffer
+        text = io.TextIOWrapper(buffer, encoding, newline)
+        text.mode = mode
+        return text
+    
+    def makefile_stderr(self, *args, **kwargs):
         """
         Return a file-like object associated with this channel's stderr
         stream.   Only channels using L{exec_command} or L{invoke_shell}
@@ -816,7 +865,8 @@ class Channel (object):
 
         @since: 1.1
         """
-        return ChannelStderrFile(*([self] + list(params)))
+        return self.makefile(*args, stderr=True, **kwargs)
+        #return ChannelStderrFile(*([self] + list(params)))
         
     def fileno(self):
         """
@@ -936,7 +986,7 @@ class Channel (object):
                 self.transport._send_user_message(m)
 
     def _feed(self, m):
-        if type(m) is str:
+        if isinstance(m, bytes):
             # passed from _feed_extended
             s = m
         else:
@@ -970,14 +1020,14 @@ class Channel (object):
         want_reply = m.get_boolean()
         server = self.transport.server_object
         ok = False
-        if key == 'exit-status':
+        if key == b'exit-status':
             self.exit_status = m.get_int()
             self.status_event.set()
             ok = True
-        elif key == 'xon-xoff':
+        elif key == b'xon-xoff':
             # ignore
             ok = True
-        elif key == 'pty-req':
+        elif key == b'pty-req':
             term = m.get_bytes()
             width = m.get_int()
             height = m.get_int()
@@ -989,24 +1039,24 @@ class Channel (object):
             else:
                 ok = server.check_channel_pty_request(self, term, width, height, pixelwidth,
                                                       pixelheight, modes)
-        elif key == 'shell':
+        elif key == b'shell':
             if server is None:
                 ok = False
             else:
                 ok = server.check_channel_shell_request(self)
-        elif key == 'exec':
+        elif key == b'exec':
             cmd = m.get_bytes()
             if server is None:
                 ok = False
             else:
                 ok = server.check_channel_exec_request(self, cmd)
-        elif key == 'subsystem':
+        elif key == b'subsystem':
             name = m.get_bytes()
             if server is None:
                 ok = False
             else:
                 ok = server.check_channel_subsystem_request(self, name)
-        elif key == 'window-change':
+        elif key == b'window-change':
             width = m.get_int()
             height = m.get_int()
             pixelwidth = m.get_int()
@@ -1016,7 +1066,7 @@ class Channel (object):
             else:
                 ok = server.check_channel_window_change_request(self, width, height, pixelwidth,
                                                                 pixelheight)
-        elif key == 'x11-req':
+        elif key == b'x11-req':
             single_connection = m.get_boolean()
             auth_proto = m.get_bytes()
             auth_cookie = m.get_bytes()
@@ -1185,50 +1235,39 @@ class Channel (object):
         if self.ultra_debug:
             self._log(DEBUG, 'window down to %d' % self.out_window_size)
         return size
-        
 
-class ChannelFile (BufferedFile):
-    """
-    A file-like wrapper around L{Channel}.  A ChannelFile is created by calling
-    L{Channel.makefile}.
+class ChannelIO(io.RawIOBase):
+    def __init__(self, recv=None, send=None):
+        io.RawIOBase.__init__(self)
+        self.recv = recv
+        self.send = send
 
-    @bug: To correctly emulate the file object created from a socket's
-        C{makefile} method, a L{Channel} and its C{ChannelFile} should be able
-        to be closed or garbage-collected independently.  Currently, closing
-        the C{ChannelFile} does nothing but flush the buffer.
-    """
+    def write(self, b):
+        self._checkClosed()
+        self._checkWritable()
+        return self.send(b)
 
-    def __init__(self, channel, mode = 'r', bufsize = -1):
-        self.channel = channel
-        BufferedFile.__init__(self)
-        self._set_mode(mode, bufsize)
+    def read(self, n):
+        self._checkClosed()
+        self._checkReadable()
+        return self.recv(n)
 
-    def __repr__(self):
-        """
-        Returns a string representation of this object, for debugging.
+    def readinto(self, ba):
+        b = self.read(len(ba))
+        n = len(b)
+        ba[0:n] = b
+        return n
 
-        @rtype: str
-        """
-        return '<paramiko.ChannelFile from ' + repr(self.channel) + '>'
+    def readable(self):
+        return self.recv is not None
 
-    def _read(self, size):
-        return self.channel.recv(size)
-
-    def _write(self, data):
-        self.channel.sendall(data)
-        return len(data)
-
-
-class ChannelStderrFile (ChannelFile):
-    def __init__(self, channel, mode = 'r', bufsize = -1):
-        ChannelFile.__init__(self, channel, mode, bufsize)
-
-    def _read(self, size):
-        return self.channel.recv_stderr(size)
+    def writable(self):
+        return self.send is not None
     
-    def _write(self, data):
-        self.channel.sendall_stderr(data)
-        return len(data)
+    def close(self):
+        if self.closed:
+            return
+        io.RawIOBase.close(self)
+        self.recv = None
+        self.send = None
 
-
-# vim: set shiftwidth=4 expandtab :

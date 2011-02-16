@@ -145,12 +145,12 @@ class AuthHandler (object):
         m = Message()
         m.add_string(self.transport.session_id)
         m.add_byte(byt(MSG_USERAUTH_REQUEST))
-        m.add_string(username)
+        m.add_string(username.encode('utf-8'))
         m.add_string(service)
         m.add_string(b'publickey')
         m.add_boolean(1)
         m.add_string(key.get_name())
-        m.add_string(msg.getvalue())
+        m.add_string(key.getvalue())
         return m.getvalue()
 
     def wait_for_response(self, event):
@@ -192,7 +192,10 @@ class AuthHandler (object):
             self.transport._log(DEBUG, 'userauth is OK')
             m = Message()
             m.add_byte(byt(MSG_USERAUTH_REQUEST))
-            m.add_string(self.username)
+            username = self.username
+            if isinstance(self.username, str):
+                username = username.encode('utf-8')
+            m.add_string(username)
             m.add_string(b'ssh-connection')
             m.add_string(self.auth_method)
             if self.auth_method == b'password':
@@ -207,10 +210,10 @@ class AuthHandler (object):
                 m.add_string(self.private_key.getvalue())
                 blob = self._get_session_blob(self.private_key, b'ssh-connection', self.username)
                 sig = self.private_key.sign_ssh_data(self.transport.randpool, blob)
-                m.add_string(str(sig))
+                m.add_string(sig.getvalue())
             elif self.auth_method == b'keyboard-interactive':
-                m.add_string('')
-                m.add_string(self.submethods)
+                m.add_string(b'')
+                m.add_string(self.submethods.encode('UTF-8'))
             elif self.auth_method == b'none':
                 pass
             else:
@@ -248,12 +251,12 @@ class AuthHandler (object):
         # make interactive query instead of response
         m = Message()
         m.add_byte(byt(MSG_USERAUTH_INFO_REQUEST))
-        m.add_string(q.name)
-        m.add_string(q.instructions)
-        m.add_string('')
+        m.add_string(q.name.encode('utf-8'))
+        m.add_string(q.instructions.encode('utf-8'))
+        m.add_string(b'')
         m.add_int(len(q.prompts))
         for p in q.prompts:
-            m.add_string(p[0])
+            m.add_string(p[0].encode('utf-8'))
             m.add_boolean(p[1])
         self.transport._send_message(m)
  
@@ -340,7 +343,7 @@ class AuthHandler (object):
                     result = AUTH_FAILED
         elif method == b'keyboard-interactive':
             lang = m.get_bytes()
-            submethods = m.get_bytes()
+            submethods = m.get_bytes().decode('utf-8')
             result = self.transport.server_object.check_auth_interactive(username, submethods)
             if isinstance(result, InteractiveQuery):
                 # make interactive query instead of response
@@ -385,20 +388,20 @@ class AuthHandler (object):
     def _parse_userauth_info_request(self, m):
         if self.auth_method != b'keyboard-interactive':
             raise SSHException('Illegal info request from server')
-        title = m.get_bytes()
-        instructions = m.get_bytes()
+        title = m.get_bytes().decode('utf-8')
+        instructions = m.get_bytes().decode('utf-8')
         m.get_bytes()  # lang
         prompts = m.get_int()
         prompt_list = []
         for i in range(prompts):
-            prompt_list.append((m.get_bytes(), m.get_boolean()))
+            prompt_list.append((m.get_bytes().decode('utf-8'), m.get_boolean()))
         response_list = self.interactive_handler(title, instructions, prompt_list)
         
         m = Message()
         m.add_byte(byt(MSG_USERAUTH_INFO_RESPONSE))
         m.add_int(len(response_list))
         for r in response_list:
-            m.add_string(r)
+            m.add_string(r.encode('utf-8'))
         self.transport._send_message(m)
     
     def _parse_userauth_info_response(self, m):
@@ -407,7 +410,7 @@ class AuthHandler (object):
         n = m.get_int()
         responses = []
         for i in range(n):
-            responses.append(m.get_bytes())
+            responses.append(m.get_bytes().decode('utf-8'))
         result = self.transport.server_object.check_auth_interactive_response(responses)
         if isinstance(type(result), InteractiveQuery):
             # make interactive query instead of response
