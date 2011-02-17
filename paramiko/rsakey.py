@@ -68,7 +68,7 @@ class RSAKey (PKey):
 
     def getvalue(self):
         m = Message()
-        m.add_string(b'ssh-rsa')
+        m.add_bytes(b'ssh-rsa')
         m.add_mpint(self.e)
         m.add_mpint(self.n)
         return m.getvalue()
@@ -93,8 +93,8 @@ class RSAKey (PKey):
         rsa = RSA.construct((int(self.n), int(self.e), int(self.d)))
         sig = util.deflate_long(rsa.sign(self._pkcs1imify(digest), '')[0], 0)
         m = Message()
-        m.add_string(b'ssh-rsa')
-        m.add_string(sig)
+        m.add_bytes(b'ssh-rsa')
+        m.add_bytes(sig)
         return m
 
     def verify_ssh_sig(self, data, msg):

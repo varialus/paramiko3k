@@ -99,7 +99,7 @@ class KexGroup1(object):
         hm = Message()
         hm.add(self.transport.local_version, self.transport.remote_version,
                self.transport.local_kex_init, self.transport.remote_kex_init)
-        hm.add_string(host_key)
+        hm.add_bytes(host_key)
         hm.add_mpint(self.e)
         hm.add_mpint(self.f)
         hm.add_mpint(K)
@@ -118,7 +118,7 @@ class KexGroup1(object):
         hm = Message()
         hm.add(self.transport.remote_version, self.transport.local_version,
                self.transport.remote_kex_init, self.transport.local_kex_init)
-        hm.add_string(key)
+        hm.add_bytes(key)
         hm.add_mpint(self.e)
         hm.add_mpint(self.f)
         hm.add_mpint(K)
@@ -129,8 +129,8 @@ class KexGroup1(object):
         # send reply
         m = Message()
         m.add_byte(byt(_MSG_KEXDH_REPLY))
-        m.add_string(key)
+        m.add_bytes(key)
         m.add_mpint(self.f)
-        m.add_string(sig.getvalue())
+        m.add_bytes(sig.getvalue())
         self.transport._send_message(m)
         self.transport._activate_outbound()

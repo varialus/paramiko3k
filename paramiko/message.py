@@ -96,6 +96,17 @@ class Message (io.BytesIO):
             return b + b'\x00' * (n - len(b))
         return b
 
+    def get_string(self, encoding):
+        """
+        FIXME: need docs
+
+        @return: a string of the next C{n} bytes of the Message, or a string
+            of C{n} zero bytes, if there aren't C{n} bytes remaining.
+        @rtype: bytes
+        """
+        assert isinstance(encoding, str)
+        return self.get_bytes().decode(encoding)
+
     def get_byte(self):
         """
         Return the next byte of the Message, without decomposing it.  This
@@ -144,16 +155,17 @@ class Message (io.BytesIO):
         """
         return util.inflate_long(self.get_bytes())
 
-    #def get_string(self):
-        #"""
-        #Fetch a string from the stream.  This could be a byte string and may
-        #contain unprintable characters.  (It's not unheard of for a string to
-        #contain another byte-stream Message.)
+    def get_string(self, encoding):
+        """
+        FIXME: update docs
+        Fetch a string from the stream.  This could be a byte string and may
+        contain unprintable characters.  (It's not unheard of for a string to
+        contain another byte-stream Message.)
 
-        #@return: a string.
-        #@rtype: string
-        #"""
-        #return self.get_bytes(self.get_int())
+        @return: a string.
+        @rtype: string
+        """
+        return self.get_bytes().decode(encoding)
 
     def get_list(self):
         """
@@ -165,13 +177,14 @@ class Message (io.BytesIO):
         """
         return self.get_bytes().split(b',')
 
-    def add_bytes(self, b):
+    def add_unformatted_bytes(self, b):
         """
         Write bytes to the stream, without any formatting.
         
         @param b: bytes to add
         @type b: bytes
         """
+        assert isinstance(b, bytes)
         self.write(b)
         return self
 
@@ -182,6 +195,7 @@ class Message (io.BytesIO):
         @param b: byte to add
         @type b: str
         """
+        assert isinstance(b, bytes)
         self.write(b)
         return self
 
@@ -226,18 +240,30 @@ class Message (io.BytesIO):
         @param z: long int to add
         @type z: long
         """
-        self.add_string(util.deflate_long(z))
+        self.add_bytes(util.deflate_long(z))
         return self
 
-    def add_string(self, s):
+    def add_string(self, s, encoding):
         """
         Add length prepended bytes to the stream.
         
         @param s: bytes to add
         @type s: bytes
         """
-        self.add_int(len(s))
-        self.write(s)
+        assert isinstance(s, str)
+        assert isinstance(encoding, str)
+        return self.add_bytes(s.encode(encoding))
+
+    def add_bytes(self, b):
+        """
+        Add length prepended bytes to the stream.
+        
+        @param s: bytes to add
+        @type s: bytes
+        """
+        assert isinstance(b, bytes)
+        self.add_int(len(b))
+        self.write(b)
         return self
 
     def add_list(self, l):
@@ -249,12 +275,12 @@ class Message (io.BytesIO):
         @param l: list of strings to add
         @type l: list(str)
         """
-        self.add_string(b','.join(l))
+        self.add_bytes(b','.join(l))
         return self
         
     def _add(self, i):
         if type(i) is bytes:
-            return self.add_string(i)
+            return self.add_bytes(i)
         elif type(i) is int:
             if i > 0xffffffff:
                 return self.add_mpint(i)

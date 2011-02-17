@@ -102,7 +102,7 @@ class SFTPClient (BaseSFTP):
         chan = t.open_session()
         if chan is None:
             return None
-        chan.invoke_subsystem('sftp')
+        chan.invoke_subsystem(b'sftp')
         return cls(chan)
     from_transport = classmethod(from_transport)
 
@@ -642,11 +642,12 @@ class SFTPClient (BaseSFTP):
             msg.add_int(self.request_number)
             for item in arg:
                 if type(item) is int:
-                    msg.add_int(item)
-                elif type(item) is int:
-                    msg.add_int64(item)
-                elif type(item) is str:
-                    msg.add_string(item)
+                    if item > 0xffffffff:
+                        msg.add_int64(item)
+                    else:
+                        msg.add_int(item)
+                elif type(item) is bytes:
+                    msg.add_bytes(item)
                 elif type(item) is SFTPAttributes:
                     item._pack(msg)
                 else:

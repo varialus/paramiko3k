@@ -125,7 +125,7 @@ class SFTPTest (unittest.TestCase):
         ts.add_server_key(host_key)
         event = threading.Event()
         server = StubServer()
-        ts.set_subsystem_handler('sftp', paramiko.SFTPServer, StubSFTPServer)
+        ts.set_subsystem_handler(b'sftp', paramiko.SFTPServer, StubSFTPServer)
         ts.start_server(event, server)
         tc.connect(username='slowdive', password='pygmalion')
         event.wait(1.0)

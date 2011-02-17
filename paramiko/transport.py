@@ -716,17 +716,17 @@ class Transport (threading.Thread):
             m = Message()
             m.add_byte(byt(MSG_CHANNEL_OPEN))
             assert(isinstance(kind,bytes))
-            m.add_string(kind)
+            m.add_bytes(kind)
             m.add_int(chanid)
             m.add_int(self.window_size)
             m.add_int(self.max_packet_size)
             if (kind == b'forwarded-tcpip') or (kind == b'direct-tcpip'):
-                m.add_string(dest_addr[0].encode('utf-8'))
+                m.add_string(dest_addr[0], 'utf-8')
                 m.add_int(dest_addr[1])
-                m.add_string(src_addr[0].encode('utf-8'))
+                m.add_string(src_addr[0], 'utf-8')
                 m.add_int(src_addr[1])
             elif kind == b'x11':
-                m.add_string(src_addr[0].encode('utf-8'))
+                m.add_string(src_addr[0], 'utf-8')
                 m.add_int(src_addr[1])
             chan = Channel(chanid)
             self._channels.put(chanid, chan)
@@ -845,7 +845,7 @@ class Transport (threading.Thread):
         randpool.stir()
         if bytes is None:
             bytes = (ord(randpool.get_bytes(1)) % 32) + 10
-        m.add_bytes(randpool.get_bytes(bytes))
+        m.add_unformatted_bytes(randpool.get_bytes(bytes))
         self._send_user_message(m)
 
     def renegotiate_keys(self):
@@ -909,7 +909,7 @@ class Transport (threading.Thread):
             self.completion_event = threading.Event()
         m = Message()
         m.add_byte(byt(MSG_GLOBAL_REQUEST))
-        m.add_string(kind)
+        m.add_bytes(kind)
         m.add_boolean(wait)
         if data is not None:
             m.add(*data)
@@ -1453,15 +1453,15 @@ class Transport (threading.Thread):
         "id is 'A' - 'F' for the various keys used by ssh"
         m = Message()
         m.add_mpint(self.K)
-        m.add_bytes(self.H)
-        m.add_bytes(id)
-        m.add_bytes(self.session_id)
+        m.add_unformatted_bytes(self.H)
+        m.add_unformatted_bytes(id)
+        m.add_unformatted_bytes(self.session_id)
         out = sofar = SHA.new(m.getvalue()).digest()
         while len(out) < nbytes:
             m = Message()
             m.add_mpint(self.K)
-            m.add_bytes(self.H)
-            m.add_bytes(sofar)
+            m.add_unformatted_bytes(self.H)
+            m.add_unformatted_bytes(sofar)
             digest = SHA.new(m.getvalue()).digest()
             out += digest
             sofar += digest
@@ -1683,7 +1683,7 @@ class Transport (threading.Thread):
         randpool.stir()
         m = Message()
         m.add_byte(byt(MSG_KEXINIT))
-        m.add_bytes(randpool.get_bytes(16))
+        m.add_unformatted_bytes(randpool.get_bytes(16))
         m.add_list(self._preferred_kex)
         m.add_list(available_server_keys)
         m.add_list(self._preferred_ciphers)
@@ -1692,8 +1692,8 @@ class Transport (threading.Thread):
         m.add_list(self._preferred_macs)
         m.add_list(self._preferred_compression)
         m.add_list(self._preferred_compression)
-        m.add_string(b'')
-        m.add_string(b'')
+        m.add_bytes(b'')
+        m.add_bytes(b'')
         m.add_boolean(False)
         m.add_int(0)
         # save a copy for later (needed to compute a hash)
@@ -2034,8 +2034,8 @@ class Transport (threading.Thread):
             msg.add_byte(byt(MSG_CHANNEL_OPEN_FAILURE))
             msg.add_int(chanid)
             msg.add_int(reason)
-            msg.add_string(b'')
-            msg.add_string(b'en')
+            msg.add_bytes(b'')
+            msg.add_bytes(b'en')
             self._send_message(msg)
             return
 

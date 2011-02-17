@@ -144,8 +144,8 @@ class SFTPAttributes (object):
         if self._flags & self.FLAG_EXTENDED:
             msg.add_int(len(self.attr))
             for key, val in self.attr.items():
-                msg.add_string(key)
-                msg.add_string(val)
+                msg.add_bytes(key)
+                msg.add_bytes(val)
         return
 
     def _debug_str(self):

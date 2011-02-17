@@ -211,9 +211,9 @@ class KexGex (object):
         # send reply
         m = Message()
         m.add_byte(byt(_MSG_KEXDH_GEX_REPLY))
-        m.add_string(key)
+        m.add_bytes(key)
         m.add_mpint(self.f)
-        m.add_string(sig.getvalue())
+        m.add_bytes(sig.getvalue())
         self.transport._send_message(m)
         self.transport._activate_outbound()
         

@@ -24,7 +24,7 @@ from paramiko.common import *
 from paramiko import util
 from paramiko.channel import Channel
 from paramiko.message import Message
-from paramiko.pycompat import byt
+from paramiko.pycompat import byt, bytord
 
 CMD_INIT, CMD_VERSION, CMD_OPEN, CMD_CLOSE, CMD_READ, CMD_WRITE, CMD_LSTAT, CMD_FSTAT, \
            CMD_SETSTAT, CMD_FSETSTAT, CMD_OPENDIR, CMD_READDIR, CMD_REMOVE, CMD_MKDIR, \
@@ -121,7 +121,7 @@ class BaseSFTP (object):
             raise SFTPError('Incompatible sftp protocol')
         version = struct.unpack('>I', data[:4])[0]
         # advertise that we support "check-file"
-        extension_pairs = [ 'check-file', 'md5,sha1' ]
+        extension_pairs = [ b'check-file', b'md5,sha1' ]
         msg = Message()
         msg.add_int(_VERSION)
         msg.add(*extension_pairs)
@@ -142,7 +142,7 @@ class BaseSFTP (object):
         return
 
     def _read_all(self, n):
-        out = ''
+        out = b''
         while n > 0:
             if isinstance(self.sock, socket.socket):
                 # sometimes sftp is used directly over a socket instead of
@@ -175,14 +175,14 @@ class BaseSFTP (object):
         x = self._read_all(4)
         # most sftp servers won't accept packets larger than about 32k, so
         # anything with the high byte set (> 16MB) is just garbage.
-        if x[0] != '\x00':
+        if bytord(x[0]) != 0x00:
             raise SFTPError('Garbage packet received')
         size = struct.unpack('>I', x)[0]
         data = self._read_all(size)
         if self.ultra_debug:
             self._log(DEBUG, util.format_binary(data, 'IN: '));
         if size > 0:
-            t = ord(data[0])
+            t = bytord(data[0])
             #self._log(DEBUG2, 'read: %s (len=%d)' % (CMD_NAMES.get(t), '0x%02x' % t, len(data)-1))
             return t, data[1:]
-        return 0, ''
+        return 0, b''

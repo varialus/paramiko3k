@@ -182,7 +182,7 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
             elif type(item) is int:
                 msg.add_int64(item)
             elif type(item) is str:
-                msg.add_string(item)
+                msg.add_bytes(item)
             elif type(item) is SFTPAttributes:
                 item._pack(msg)
             else:
@@ -231,7 +231,7 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
         msg.add_int(request_number)
         msg.add_int(len(flist))
         for attr in flist:
-            msg.add_string(attr.filename)
+            msg.add_bytes(attr.filename)
             msg.add_string(str(attr))
             attr._pack(msg)
         self._send_packet(CMD_NAME, msg.getvalue())
@@ -292,7 +292,7 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
         msg.add_int(request_number)
         msg.add_string('check-file')
         msg.add_string(algname)
-        msg.add_bytes(sum_out)
+        msg.add_unformatted_bytes(sum_out)
         self._send_packet(CMD_EXTENDED_REPLY, msg.getvalue())
     
     def _convert_pflags(self, pflags):

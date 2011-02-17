@@ -142,8 +142,8 @@ class AgentKey(PKey):
     def sign_ssh_data(self, randpool, data):
         msg = Message()
         msg.add_byte(byt(SSH2_AGENTC_SIGN_REQUEST))
-        msg.add_string(self.blob)
-        msg.add_string(data)
+        msg.add_bytes(self.blob)
+        msg.add_bytes(data)
         msg.add_int(0)
         ptype, result = self.agent._send_message(msg)
         if ptype != SSH2_AGENT_SIGN_RESPONSE:

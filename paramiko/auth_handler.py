@@ -120,15 +120,15 @@ class AuthHandler (object):
     def _request_auth(self):
         m = Message()
         m.add_byte(byt(MSG_SERVICE_REQUEST))
-        m.add_string(b'ssh-userauth')
+        m.add_bytes(b'ssh-userauth')
         self.transport._send_message(m)
 
     def _disconnect_service_not_available(self):
         m = Message()
         m.add_byte(byt(MSG_DISCONNECT))
         m.add_int(DISCONNECT_SERVICE_NOT_AVAILABLE)
-        m.add_string(b'Service not available')
-        m.add_string(b'en')
+        m.add_bytes(b'Service not available')
+        m.add_bytes(b'en')
         self.transport._send_message(m)
         self.transport.close()
 
@@ -136,21 +136,21 @@ class AuthHandler (object):
         m = Message()
         m.add_byte(byt(MSG_DISCONNECT))
         m.add_int(DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE)
-        m.add_string(b'No more auth methods available')
-        m.add_string(b'en')
+        m.add_bytes(b'No more auth methods available')
+        m.add_bytes(b'en')
         self.transport._send_message(m)
         self.transport.close()
 
     def _get_session_blob(self, key, service, username):
         m = Message()
-        m.add_string(self.transport.session_id)
+        m.add_bytes(self.transport.session_id)
         m.add_byte(byt(MSG_USERAUTH_REQUEST))
-        m.add_string(username.encode('utf-8'))
-        m.add_string(service)
-        m.add_string(b'publickey')
+        m.add_string(username, 'utf-8')
+        m.add_bytes(service)
+        m.add_bytes(b'publickey')
         m.add_boolean(1)
-        m.add_string(key.get_name())
-        m.add_string(key.getvalue())
+        m.add_bytes(key.get_name())
+        m.add_bytes(key.getvalue())
         return m.getvalue()
 
     def wait_for_response(self, event):
@@ -180,7 +180,7 @@ class AuthHandler (object):
             # accepted
             m = Message()
             m.add_byte(byt(MSG_SERVICE_ACCEPT))
-            m.add_string(service)
+            m.add_bytes(service)
             self.transport._send_message(m)
             return
         # dunno this one
@@ -195,25 +195,25 @@ class AuthHandler (object):
             username = self.username
             if isinstance(self.username, str):
                 username = username.encode('utf-8')
-            m.add_string(username)
-            m.add_string(b'ssh-connection')
-            m.add_string(self.auth_method)
+            m.add_bytes(username)
+            m.add_bytes(b'ssh-connection')
+            m.add_bytes(self.auth_method)
             if self.auth_method == b'password':
                 m.add_boolean(False)
                 password = self.password
                 if isinstance(password, str):
-                    password = password.encode('UTF-8')
-                m.add_string(password)
+                    password = password.encode('utf-8')
+                m.add_bytes(password)
             elif self.auth_method == b'publickey':
                 m.add_boolean(True)
-                m.add_string(self.private_key.get_name())
-                m.add_string(self.private_key.getvalue())
+                m.add_bytes(self.private_key.get_name())
+                m.add_bytes(self.private_key.getvalue())
                 blob = self._get_session_blob(self.private_key, b'ssh-connection', self.username)
                 sig = self.private_key.sign_ssh_data(self.transport.randpool, blob)
-                m.add_string(sig.getvalue())
+                m.add_bytes(sig.getvalue())
             elif self.auth_method == b'keyboard-interactive':
-                m.add_string(b'')
-                m.add_string(self.submethods.encode('UTF-8'))
+                m.add_bytes(b'')
+                m.add_string(self.submethods, 'utf-8')
             elif self.auth_method == b'none':
                 pass
             else:
@@ -235,7 +235,7 @@ class AuthHandler (object):
             m.add_byte(byt(MSG_USERAUTH_FAILURE))
             auths = self.transport.server_object.get_allowed_auths(username)
             assert(isinstance(auths,bytes))
-            m.add_string(auths)
+            m.add_bytes(auths)
             if result == AUTH_PARTIALLY_SUCCESSFUL:
                 m.add_boolean(1)
             else:
@@ -251,12 +251,12 @@ class AuthHandler (object):
         # make interactive query instead of response
         m = Message()
         m.add_byte(byt(MSG_USERAUTH_INFO_REQUEST))
-        m.add_string(q.name.encode('utf-8'))
-        m.add_string(q.instructions.encode('utf-8'))
-        m.add_string(b'')
+        m.add_string(q.name, 'utf-8')
+        m.add_string(q.instructions, 'utf-8')
+        m.add_bytes(b'')
         m.add_int(len(q.prompts))
         for p in q.prompts:
-            m.add_string(p[0].encode('utf-8'))
+            m.add_string(p[0], 'utf-8')
             m.add_boolean(p[1])
         self.transport._send_message(m)
  
@@ -265,14 +265,14 @@ class AuthHandler (object):
             # er, uh... what?
             m = Message()
             m.add_byte(byt(MSG_USERAUTH_FAILURE))
-            m.add_string(b'none')
+            m.add_bytes(b'none')
             m.add_boolean(0)
             self.transport._send_message(m)
             return
         if self.authenticated:
             # ignore
             return
-        username = m.get_bytes().decode('UTF-8')
+        username = m.get_string('utf-8')
         service = m.get_bytes()
         method = m.get_bytes()
         self.transport._log(DEBUG, 'Auth request (type=%s) service=%s, username=%s' % (method, service, username))
@@ -291,7 +291,7 @@ class AuthHandler (object):
             changereq = m.get_boolean()
             password = m.get_bytes()
             try:
-                password = password.decode('UTF-8')
+                password = password.decode('utf-8')
             except UnicodeError:
                 # some clients/servers expect non-utf-8 passwords!
                 # in this case, just return the raw byte string.
@@ -302,7 +302,7 @@ class AuthHandler (object):
                 self.transport._log(DEBUG, 'Auth request to change passwords (rejected)')
                 newpassword = m.get_bytes()
                 try:
-                    newpassword = newpassword.decode('UTF-8', 'replace')
+                    newpassword = newpassword.decode('utf-8', 'replace')
                 except UnicodeError:
                     pass
                 result = AUTH_FAILED
@@ -332,8 +332,8 @@ class AuthHandler (object):
                     # signs anything...  send special "ok" message
                     m = Message()
                     m.add_byte(byt(MSG_USERAUTH_PK_OK))
-                    m.add_string(keytype)
-                    m.add_string(keyblob)
+                    m.add_bytes(keytype)
+                    m.add_bytes(keyblob)
                     self.transport._send_message(m)
                     return
                 sig = Message(m.get_bytes())
@@ -401,7 +401,7 @@ class AuthHandler (object):
         m.add_byte(byt(MSG_USERAUTH_INFO_RESPONSE))
         m.add_int(len(response_list))
         for r in response_list:
-            m.add_string(r.encode('utf-8'))
+            m.add_string(r, 'utf-8')
         self.transport._send_message(m)
     
     def _parse_userauth_info_response(self, m):

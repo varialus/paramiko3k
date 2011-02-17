@@ -69,7 +69,7 @@ class DSSKey (PKey):
 
     def getvalue(self):
         m = Message()
-        m.add_string(b'ssh-dss')
+        m.add_bytes(b'ssh-dss')
         m.add_mpint(self.p)
         m.add_mpint(self.q)
         m.add_mpint(self.g)
@@ -105,7 +105,7 @@ class DSSKey (PKey):
                 break
         r, s = dss.sign(util.inflate_long(digest, 1), k)
         m = Message()
-        m.add_string(b'ssh-dss')
+        m.add_bytes(b'ssh-dss')
         # apparently, in rare cases, r or s may be shorter than 20 bytes!
         rstr = util.deflate_long(r, 0)
         sstr = util.deflate_long(s, 0)
@@ -113,7 +113,7 @@ class DSSKey (PKey):
             rstr = b'\x00' * (20 - len(rstr)) + rstr
         if len(sstr) < 20:
             sstr = b'\x00' * (20 - len(sstr)) + sstr
-        m.add_string(rstr + sstr)
+        m.add_bytes(rstr + sstr)
         return m
 
     def verify_ssh_sig(self, data, msg):

@@ -97,9 +97,9 @@ class KexTest (unittest.TestCase):
 
         # fake "reply"
         msg = Message()
-        msg.add_string(b'fake-host-key')
+        msg.add_bytes(b'fake-host-key')
         msg.add_mpint(69)
-        msg.add_string(b'fake-sig')
+        msg.add_bytes(b'fake-sig')
         msg.rewind()
         kex.parse_next(paramiko.kex_group1._MSG_KEXDH_REPLY, msg)
         H = b'03079780F3D3AD0B3C6DB30C8D21685F367A86D2'
@@ -145,9 +145,9 @@ class KexTest (unittest.TestCase):
         self.assertEquals((paramiko.kex_gex._MSG_KEXDH_GEX_REPLY,), transport._expect)
 
         msg = Message()
-        msg.add_string(b'fake-host-key')
+        msg.add_bytes(b'fake-host-key')
         msg.add_mpint(69)
-        msg.add_string(b'fake-sig')
+        msg.add_bytes(b'fake-sig')
         msg.rewind()
         kex.parse_next(paramiko.kex_gex._MSG_KEXDH_GEX_REPLY, msg)
         H = b'A265563F2FA87F1A89BF007EE90D58BE2E4A4BD0'
@@ -175,9 +175,9 @@ class KexTest (unittest.TestCase):
         self.assertEquals((paramiko.kex_gex._MSG_KEXDH_GEX_REPLY,), transport._expect)
 
         msg = Message()
-        msg.add_string(b'fake-host-key')
+        msg.add_bytes(b'fake-host-key')
         msg.add_mpint(69)
-        msg.add_string(b'fake-sig')
+        msg.add_bytes(b'fake-sig')
         msg.rewind()
         kex.parse_next(paramiko.kex_gex._MSG_KEXDH_GEX_REPLY, msg)
         H = b'807F87B269EF7AC5EC7E75676808776A27D5864C'
