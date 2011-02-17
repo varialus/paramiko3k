@@ -196,6 +196,7 @@ class SFTPHandle (object):
         return self.__name
 
     def _set_name(self, name):
+        assert isinstance(name, bytes)
         self.__name = name
 
 

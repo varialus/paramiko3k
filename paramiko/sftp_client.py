@@ -699,7 +699,7 @@ class SFTPClient (BaseSFTP):
         Raises EOFError or IOError on error status; otherwise does nothing.
         """
         code = msg.get_int()
-        text = msg.get_bytes()
+        text = msg.get_string('utf-8')
         if code == SFTP_OK:
             return
         elif code == SFTP_EOF:
