@@ -1,3 +1,25 @@
+========
+paramiko (Notes on Python 3 port, branch py3kb)
+========
+
+This is a port of paramiko (ssh package for Python) to Python 3.  It depends on an unreleased version of pycrypto that supports Python 3; this can be found here:
+
+https://github.com/goertzenator/pycrypto
+
+
+All of paramiko except for sftp has been ported to Python 3.  All non-sftp unit tests pass without error.
+
+TODO:
+
+- Get sftp working, possibly busting up SFTPFile into 2 or more classes to better leverage Python 3 io features.
+- Update documentation to refer to bytes instead of str in most places.  This has already been done randomly in a few places.
+- Update code public APIs to assert str and bytes parameters.  It will be easy to confuse str and bytes using the py3 version, so users should be informed of errors as early as possible.
+- Decide how to manage this port.  Does robey want to take care of it?  Should it be administered as a separate package?
+
+
+
+
+
 
 ========
 paramiko
