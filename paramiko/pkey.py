@@ -324,7 +324,7 @@ class PKey (object):
         cipher = self._CIPHER_TABLE[encryption_type]['cipher']
         keysize = self._CIPHER_TABLE[encryption_type]['keysize']
         mode = self._CIPHER_TABLE[encryption_type]['mode']
-        salt = unhexlify(saltstr)
+        salt = unhexlify(saltstr.encode('ascii'))
         key = util.generate_key_bytes(MD5, salt, password, keysize)
         return cipher.new(key, mode, salt).decrypt(data)
 

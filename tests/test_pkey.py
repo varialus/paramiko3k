@@ -78,7 +78,7 @@ class KeyTest (unittest.TestCase):
     def test_1_generate_key_bytes(self):
         from Crypto.Hash import MD5
         key = util.generate_key_bytes(MD5, b'\x01\x02\x03\x04', b'happy birthday', 30)
-        exp = unhexlify('61E1F272F4C1C4561586BD322498C0E924672780F47BB37DDA7D54019E64')
+        exp = unhexlify(b'61E1F272F4C1C4561586BD322498C0E924672780F47BB37DDA7D54019E64')
         self.assertEquals(exp, key)
 
     def test_2_load_rsa(self):
