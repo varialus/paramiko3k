@@ -36,6 +36,7 @@ from paramiko.file import BufferedFile
 from paramiko.buffered_pipe import BufferedPipe, PipeTimeout
 from paramiko import pipe
 from paramiko.pycompat import byt
+from paramiko import ioutil
 
 # lower bound on the max packet size we'll accept from the remote host
 MIN_PACKET_SIZE = 1024
@@ -797,50 +798,16 @@ class Channel (object):
         return None
 
 
-    def makefile(self, mode="r", buffering=None, *,
-                 encoding=None, newline=None, stderr=False):
+    def makefile(self, *args, **kwargs):
         """makefile(...) -> an I/O stream connected to the socket
 
-        The arguments are as for io.open() after the filename,
-        except the only mode characters supported are 'r', 'w' and 'b'.
-        The semantics are similar too.  (XXX refactor to share code?)
+        The arguments are as for io.open() except...
+         - the closefd paramater is not permitted.
+         - read and write mode may be used simultaneously.
         """
-        for c in mode:
-            if c not in {"r", "w", "b", "t"}:
-                raise ValueError("invalid mode %r (only r, w, b, t allowed)")
-        writing = "w" in mode
-        reading = "r" in mode or not writing
-        assert reading or writing
-        binary = "b" in mode
-        recv = send = None
-        if stderr:
-            if reading: recv = self.recv_stderr
-            if writing: send = self.send_stderr
-        else:
-            if reading: recv = self.recv
-            if writing: send = self.send
-        raw = ChannelIO(recv, send)
-        if buffering is None:
-            buffering = -1
-        if buffering < 0:
-            buffering = io.DEFAULT_BUFFER_SIZE
-        if buffering == 0:
-            if not binary:
-                raise ValueError("unbuffered streams must be binary")
-            return raw
-        if reading and writing:
-            buffer = io.BufferedRWPair(raw, raw, buffering)
-        elif reading:
-            buffer = io.BufferedReader(raw, buffering)
-        else:
-            assert writing
-            buffer = io.BufferedWriter(raw, buffering)
-        if binary:
-            return buffer
-        text = io.TextIOWrapper(buffer, encoding, newline)
-        text.mode = mode
-        return text
-    
+        raw = ChannelIO(self.recv, self.send)
+        return ioutil.wrapraw(raw, *args, **kwargs)
+
     def makefile_stderr(self, *args, **kwargs):
         """
         Return a file-like object associated with this channel's stderr
@@ -857,9 +824,10 @@ class Channel (object):
 
         @since: 1.1
         """
-        return self.makefile(*args, stderr=True, **kwargs)
-        #return ChannelStderrFile(*([self] + list(params)))
-        
+
+        raw = ChannelIO(self.recv_stderr, self.send_stderr)
+        return ioutil.wrapraw(raw, *args, **kwargs)
+
     def fileno(self):
         """
         Returns an OS-level file descriptor which can be used for polling, but
