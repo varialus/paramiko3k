@@ -283,6 +283,55 @@ class TransportTest (unittest.TestCase):
         self.assertEquals(b'This is on stderr.\n', f.readline())
         self.assertEquals(b'', f.readline())
 
+    def test_6b1_makefile(self):
+        """
+        verify binary file behavior.
+        """
+        self.setup_test_server()
+
+        chan = self.tc.open_session()
+        chan.exec_command(b'yes')
+        schan = self.ts.accept(1.0)
+        f = schan.makefile(mode='bw')
+        f.write(b'Hello there.\n')
+        f.close()
+        schan.send_stderr(b'This is on stderr.\n')
+        schan.close()
+
+        f = chan.makefile(mode='br')
+        self.assertEquals(b'Hello ', f.read(6))
+        self.assertEquals(b'there.\n', f.read())
+        self.assertEquals(b'', f.read(6))
+        self.assertEquals(b'', f.read())
+        f = chan.makefile_stderr(mode='br')
+        self.assertEquals(b'This is on stderr.\n', f.readline())
+        self.assertEquals(b'', f.readline())
+
+    def test_6b2_makefile(self):
+        """
+        verify text file behavior.
+        """
+        self.setup_test_server()
+
+        chan = self.tc.open_session()
+        chan.exec_command(b'yes')
+        schan = self.ts.accept(1.0)
+        f = schan.makefile(mode='tw')
+        f.write('Hello there.\n')
+        f.close()
+        schan.send_stderr(b'This is on stderr.\n')
+        schan.close()
+
+        f = chan.makefile(mode='tr')
+        self.assertEquals('Hello ', f.read(6))
+        self.assertEquals('there.\n', f.read())
+        self.assertEquals('', f.read(6))
+        self.assertEquals('', f.read())
+        f = chan.makefile_stderr(mode='tr')
+        self.assertEquals('This is on stderr.\n', f.readline())
+        self.assertEquals('', f.readline())
+
+
     def test_7_invoke_shell(self):
         """
         verify that invoke_shell() does something reasonable.

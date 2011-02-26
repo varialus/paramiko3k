@@ -261,7 +261,7 @@ class Message (io.BytesIO):
         @param s: bytes to add
         @type s: bytes
         """
-        assert isinstance(b, bytes)
+        assert isinstance(b, (bytes, bytearray, memoryview) )
         self.add_int(len(b))
         self.write(b)
         return self

@@ -686,7 +686,7 @@ class Channel (object):
         @raise socket.timeout: if no data could be sent before the timeout set
             by L{settimeout}.
         """
-        assert isinstance(s, bytes)
+        assert isinstance(s, (bytes, bytearray, memoryview))
         size = len(s)
         self.lock.acquire()
         try:
@@ -724,7 +724,7 @@ class Channel (object):
         
         @since: 1.1
         """
-        assert isinstance(s, bytes)
+        assert isinstance(s, (bytes, bytearray, memoryview))
         size = len(s)
         self.lock.acquire()
         try:
@@ -796,16 +796,7 @@ class Channel (object):
             s = s[sent:]
         return None
 
-    #def makefile(self, *params):
-        #"""
-        #Return a file-like object associated with this channel.  The optional
-        #C{mode} and C{bufsize} arguments are interpreted the same way as by
-        #the built-in C{file()} function in python.
 
-        #@return: object which can be used for python file I/O.
-        #@rtype: L{ChannelFile}
-        #"""
-        #return ChannelFile(*([self] + list(params)))
     def makefile(self, mode="r", buffering=None, *,
                  encoding=None, newline=None, stderr=False):
         """makefile(...) -> an I/O stream connected to the socket
@@ -815,18 +806,19 @@ class Channel (object):
         The semantics are similar too.  (XXX refactor to share code?)
         """
         for c in mode:
-            if c not in {"r", "w", "b"}:
-                raise ValueError("invalid mode %r (only r, w, b allowed)")
+            if c not in {"r", "w", "b", "t"}:
+                raise ValueError("invalid mode %r (only r, w, b, t allowed)")
         writing = "w" in mode
         reading = "r" in mode or not writing
         assert reading or writing
         binary = "b" in mode
+        recv = send = None
         if stderr:
-            recv = reading and self.recv_stderr
-            send = writing and self.send_stderr
+            if reading: recv = self.recv_stderr
+            if writing: send = self.send_stderr
         else:
-            recv = reading and self.recv
-            send = writing and self.send
+            if reading: recv = self.recv
+            if writing: send = self.send
         raw = ChannelIO(recv, send)
         if buffering is None:
             buffering = -1
@@ -1238,18 +1230,15 @@ class Channel (object):
 
 class ChannelIO(io.RawIOBase):
     def __init__(self, recv=None, send=None):
-        io.RawIOBase.__init__(self)
         self.recv = recv
         self.send = send
 
     def write(self, b):
-        self._checkClosed()
-        self._checkWritable()
         return self.send(b)
 
-    def read(self, n):
-        self._checkClosed()
-        self._checkReadable()
+    def read(self, n=-1):
+        if n == -1:
+            n = io.DEFAULT_BUFFER_SIZE
         return self.recv(n)
 
     def readinto(self, ba):
@@ -1265,9 +1254,6 @@ class ChannelIO(io.RawIOBase):
         return self.send is not None
     
     def close(self):
-        if self.closed:
-            return
-        io.RawIOBase.close(self)
+        super().close()  # causes flush() if not already closed
         self.recv = None
         self.send = None
-
