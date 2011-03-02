@@ -798,15 +798,62 @@ class Channel (object):
         return None
 
 
-    def makefile(self, *args, **kwargs):
+    def _makefile_main(self, mode='r', *args, recv, send, shutdown_channel=False, **kwargs):
         """makefile(...) -> an I/O stream connected to the socket
 
         The arguments are as for io.open() except...
          - the closefd paramater is not permitted.
+
          - read and write mode may be used simultaneously.
+
+        - if shutdown_channel is True, the read and/or write portions of the
+        channel will be shutdown up close() of this file. For example, if
+        makefile() is called with mode='w' and shutdown_channel=True, then an
+        EOF will be sent upon close of this file object.
         """
-        raw = ChannelIO(self.recv, self.send)
-        return ioutil.wrapraw(raw, *args, **kwargs)
+
+        is_viable = False
+
+        def shutdown_handler():
+            nonlocal is_viable
+            if not is_viable:
+                return
+            if 'r' in mode:
+                self.shutdown_read()
+            if 'w' in mode:
+                self.shutdown_write()
+
+        if not shutdown_channel:
+            shutdown_handler = None
+
+
+        raw = ChannelIO(recv, send, shutdown_handler)
+        file = ioutil.wrapraw(raw, mode, *args, **kwargs)
+
+        # If that didn't raise, file is viable and the shutdown function
+        # should be enabled. Otherwise the shutdown function should stay
+        # disabled because we don't want to kill the channel upon a botched
+        # makefile()
+        is_viable = True
+        return file
+
+    def makefile(self, *args, **kwargs):
+        """
+        Return a file-like object associated with this channel's stderr
+        stream.   Only channels using L{exec_command} or L{invoke_shell}
+        without a pty will ever have data on the stderr stream.
+
+        The optional C{mode} and C{bufsize} arguments are interpreted the
+        same way as by the built-in C{file()} function in python.  For a
+        client, it only makes sense to open this file for reading.  For a
+        server, it only makes sense to open this file for writing.
+
+        @return: object which can be used for python file I/O.
+        @rtype: L{ChannelFile}
+
+        @since: 1.1
+        """
+        return self._makefile_main(*args, recv = self.recv, send = self.send, **kwargs)
 
     def makefile_stderr(self, *args, **kwargs):
         """
@@ -824,9 +871,7 @@ class Channel (object):
 
         @since: 1.1
         """
-
-        raw = ChannelIO(self.recv_stderr, self.send_stderr)
-        return ioutil.wrapraw(raw, *args, **kwargs)
+        return self._makefile_main(*args, recv = self.recv_stderr, send = self.send_stderr, **kwargs)
 
     def fileno(self):
         """
@@ -1197,9 +1242,10 @@ class Channel (object):
         return size
 
 class ChannelIO(io.RawIOBase):
-    def __init__(self, recv=None, send=None):
+    def __init__(self, recv=None, send=None, shutdown_handler=None):
         self.recv = recv
         self.send = send
+        self.shutdown_handler = shutdown_handler
 
     def write(self, b):
         return self.send(b)
@@ -1223,6 +1269,9 @@ class ChannelIO(io.RawIOBase):
 
     def close(self):
         super().close()  # causes flush() if not already closed
+        if self.shutdown_handler:
+           self.shutdown_handler()
+           self.shutdown_handler = None
         self.recv = None
         self.send = None
 

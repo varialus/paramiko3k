@@ -277,7 +277,7 @@ class TransportTest (unittest.TestCase):
         schan.send_stderr(b'This is on stderr.\n')
         schan.close()
 
-        chan.set_combine_stderr(True)        
+        chan.set_combine_stderr(True)
         f = chan.makefile(mode='br')
         self.assertEquals(b'Hello there.\n', f.readline())
         self.assertEquals(b'This is on stderr.\n', f.readline())
@@ -331,6 +331,30 @@ class TransportTest (unittest.TestCase):
         self.assertEquals('This is on stderr.\n', f.readline())
         self.assertEquals('', f.readline())
 
+    def test_6c1_makefile(self):
+        """
+        verify shutdown_channel operation.
+        """
+        self.setup_test_server()
+
+        chan = self.tc.open_session()
+        chan.exec_command(b'yes')
+        schan = self.ts.accept(1.0)
+
+        f = chan.makefile(mode='trw')
+        f.close()
+        self.assert_(not chan.eof_received)
+        self.assert_(not chan.eof_sent)
+
+        f = chan.makefile(mode='tr', shutdown_channel = True)
+        f.close()
+        self.assert_(chan.eof_received)
+        self.assert_(not chan.eof_sent)
+
+        f = chan.makefile(mode='tw', shutdown_channel = True)
+        f.close()
+        self.assert_(chan.eof_received)
+        self.assert_(chan.eof_sent)
 
     def test_7_invoke_shell(self):
         """

@@ -101,7 +101,7 @@ class SSHClientTest (unittest.TestCase):
         self.assertEquals('slowdive', self.ts.get_username())
         self.assertEquals(True, self.ts.is_authenticated())
 
-        stdin, stdout, stderr = self.tc.exec_command(b'yes')
+        stdin, stdout, stderr = self.tc.exec_command(b'yes', mode='b')
         schan = self.ts.accept(1.0)
 
         schan.send(b'Hello there.\n')
@@ -134,7 +134,7 @@ class SSHClientTest (unittest.TestCase):
         self.assertEquals('slowdive', self.ts.get_username())
         self.assertEquals(True, self.ts.is_authenticated())
 
-        stdin, stdout, stderr = self.tc.exec_command(b'yes')
+        stdin, stdout, stderr = self.tc.exec_command(b'yes', mode='b')
         schan = self.ts.accept(1.0)
 
         schan.send(b'Hello there.\n')

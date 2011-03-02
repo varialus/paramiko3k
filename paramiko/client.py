@@ -339,7 +339,7 @@ class SSHClient (object):
         self._transport.close()
         self._transport = None
 
-    def exec_command(self, command, bufsize=-1, iomode='b'):
+    def exec_command(self, command, mode='', *args, **kwargs):
         """
         Execute a command on the SSH server.  A new L{Channel} is opened and
         the requested command is executed.  The command's input and output
@@ -348,21 +348,19 @@ class SSHClient (object):
 
         @param command: the command to execute
         @type command: str
-        @param bufsize: interpreted the same way as by the built-in C{file()} function in python
-        @type bufsize: int
         @return: the stdin, stdout, and stderr of the executing command
         @rtype: tuple(L{ChannelFile}, L{ChannelFile}, L{ChannelFile})
 
         @raise SSHException: if the server fails to execute the command
         """
         assert isinstance(command, bytes)
-        assert 'w' not in iomode
-        assert 'r' not in iomode
+        assert 'w' not in mode
+        assert 'r' not in mode
         chan = self._transport.open_session()
         chan.exec_command(command)
-        stdin = chan.makefile('w'+iomode, bufsize)
-        stdout = chan.makefile('r'+iomode, bufsize)
-        stderr = chan.makefile_stderr('r'+iomode, bufsize)
+        stdin = chan.makefile('w'+mode, *args, **kwargs)
+        stdout = chan.makefile('r'+mode, *args, **kwargs)
+        stderr = chan.makefile_stderr('r'+mode, *args, **kwargs)
         return stdin, stdout, stderr
 
     def invoke_shell(self, term='vt100', width=80, height=24):

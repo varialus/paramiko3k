@@ -128,8 +128,8 @@ def wrapraw(raw, mode="r", buffering=-1, encoding=None, errors=None,
         reading = True
     if text and binary:
         raise ValueError("can't have text and binary mode at once")
-    if reading + writing + appending > 1:
-        raise ValueError("can't have read/write/append mode at once")
+    if writing + appending > 1:
+        raise ValueError("can't have write and append mode at once")
     if not (reading or writing or appending):
         raise ValueError("must have exactly one of read/write/append mode")
     if binary and encoding is not None:
