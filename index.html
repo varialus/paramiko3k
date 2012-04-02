@@ -46,91 +46,126 @@
       <span class="small">by <a href="https://github.com/varialus">varialus</a></span></h1>
 
     <div class="description">
-      native python SSHv2 protocol library
+      py3k branch of <a href="http://www.lag.net/paramiko/">native python SSHv2 protocol library</a>
     </div>
 
     
-      <p>Goals by Priority
-1. Support the latest stable Python 3.x.
-2. Upload package to PyPI.
-3. Support Python 3.0+
-4. Support Python 2.2+.
-5. Merge upstream.</p>
-    
+      <h2>Goals</h2>
+      <p>
+        <ol>
+          <li>Support the latest stable Python 3.x.</li>
+          <li>Upload package to PyPI.</li>
+          <li>Support Python 3.0+</li>
+          <li>Support Python 2.2+.</li>
+          <li>Merge upstream.</li>
+        </ol>
+      </p>
 
-    
+
+
       <h2>Dependencies</h2>
       <p>Latest stable pycrypto.</p>
     
 
     
-      <h2>Install</h2>
-      <p>Debian Wheezy
-
-0. The program sudo runs commands with root privileges. If you don't have sudo set up, you should be able to use the program su in a separate command to switch to the root user account.
-su -
-
-1. Install python3-dev from the main Debian repository.
-sudo apt-get install python3-dev
-
-2. I'm not sure whether build-essential from the main Debian repository is required to compile pycrypto, but I had it installed.
-sudo apt-get install build-essential.
-
-3. Using Python 3.x run the PIP install script from the web.
-wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
-sudo python3.2 ./get-pip.py
-
-4. Use pip-3.2 to install pycrypto from PyPI. Once paramiko3k has been uploaded to PyPI or merged with paramiko, pycrypto will be installed as a dependency during the next step. 
-sudo pip-3.2 install pycrypto
-
-5a. Until paramiko3k has been uploaded to PyPI or merged with paramiko, download, unzip and import paramiko3k from github.
-wget https://github.com/varialus/paramiko3k/zipball/py3kb
-unzip paramiko3k
-ls
-cd varialus-paramiko3k-...
-python3.2
-import paramiko3k
-
-5b. After paramiko3k has been uploaded to PyPI or merged with paramiko, which hasn't occurred as of March 2012, use pip to install paramiko3k or paramiko.
-sudo pip-3.2 install paramiko3k
-sudo pip-3.2 install paramiko
-python3.2
-import paramiko3k
-
-Windows
-1. On Windows XP or Windows 7 32-bit, install the 32-bit version of Python 3.2. On Windows 7 64-bit, I recommend installing the 64-bit version of Python 3.2, but the 32-bit version should also work.
-
-2. Add C:\Python32 and C:\Python32\Scripts to your path.
-Start > Contextual/Right Click Computer > Properties > Advanced > Environment Variables > Path
-
-3. Install the distribute version of Easy Install.
-http://python-distribute.org/distribute_setup.py
-python3.2 distribute_setup.py
-
-4. Install pip.
-easy_install pip
-
-5. Install and configure Microsoft Visual Studio 2008 Express.
-http://bit.ly/H7o2gp
-
-6. Use pip-3.2 to install pycrypto from PyPI. Once paramiko3k has been uploaded to PyPI or merged with paramiko, pycrypto will be installed as a dependency during the next step. 
-cd C:\Python32\Scripts
-pip-3.2.exe install pycrypto
-
-5a. Until paramiko3k has been uploaded to PyPI or merged with paramiko, download, unzip and import paramiko3k from github.
-https://github.com/varialus/paramiko3k/zipball/py3kb
-Unzip paramiko3k
-Open command prompt.
-cd C:\path\to\varialus-paramiko3k-...
-python3.2
-import paramiko3k
-
-5b. After paramiko3k has been uploaded to PyPI or merged with paramiko, which hasn't occurred as of March 2012, use pip to install paramiko3k or paramiko.
-cd C:\Python32\Scripts
-pip-3.2.exe install paramiko3k
-pip-3.2 install paramiko3k
-python3.2
-import paramiko3k</p>
+      <h2>Installation</h2>
+      <p><h4>Debian Wheezy</h4>
+        <ol start="0">
+          <li>The program sudo runs commands with root privileges. If you don't have sudo set up, you should be able to use the program su in a separate command to switch to the root user account.
+            <p>
+              <code>su -</code>
+            </p>
+          </li>
+          <li>Install python3-dev from the main Debian repository.
+            <p>
+              <code>sudo apt-get install python3-dev</code>
+            </p>
+          </li>
+          <li>I'm not sure whether build-essential from the main Debian repository is required to compile pycrypto, but I had it installed.
+            <p>
+              <code>sudo apt-get install build-essential.</code>
+            </p>
+          </li>
+          <li>Using Python 3.x run the PIP install script from the web.
+            <p>
+              <code>wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+              <br/>sudo python3.2 ./get-pip.py</code>
+            </p>
+          </li>
+          <li>Use pip-3.2 to install pycrypto from PyPI. Once paramiko3k has been uploaded to PyPI or merged with paramiko, pycrypto will be installed as a dependency during the next step. 
+            <p>
+              <code>sudo pip-3.2 install pycrypto</code>
+            </p>
+          </li>
+          <li>Until paramiko3k has been uploaded to PyPI or merged with paramiko, download, unzip and import paramiko3k from github.
+            <p>
+              <code>wget https://github.com/varialus/paramiko3k/zipball/py3kb
+              <br/>unzip paramiko3k
+              <br/>ls
+              <br/>cd varialus-paramiko3k-...
+              <br/>python3.2
+              <br/>import paramiko3k</code>
+            </p>
+          </li>
+          <li>After paramiko3k has been uploaded to PyPI or merged with paramiko, which hasn't occurred as of March 2012, use pip to install paramiko3k or paramiko.
+            <p>
+              <code>sudo pip-3.2 install paramiko3k
+              <br/>sudo pip-3.2 install paramiko
+              <br/>python3.2
+              <br/>import paramiko3k</code>
+            </p>
+        </li>
+        </ol><h4>Windows</h4>
+        <ol>
+          <li>On Windows XP or Windows 7 32-bit, install the 32-bit version of Python 3.2. On Windows 7 64-bit, I recommend installing the 64-bit version of Python 3.2, but the 32-bit version should also work.</li>
+          <li>Add C:\Python32 and C:\Python32\Scripts to your path.
+            <p>
+              <code>Start > Contextual/Right Click Computer > Properties > Advanced > Environment Variables > Path</code>
+            </p>
+          </li>
+          <li>Install the distribute version of Easy Install.
+            <p>
+              <code>http://python-distribute.org/distribute_setup.py
+python3.2 distribute_setup.py</code>
+            </p>
+          </li>
+          <li>Install pip.
+            <p>
+              <code>easy_install pip</code>
+            </p>
+          </li>
+          <li>Install and configure Microsoft Visual Studio 2008 Express.
+            <p>
+              <code>http://bit.ly/H7o2gp</code>
+            </p>
+          </li>
+          <li>Use pip-3.2 to install pycrypto from PyPI. Once paramiko3k has been uploaded to PyPI or merged with paramiko, pycrypto will be installed as a dependency during the next step. 
+            <p>
+              <code>cd C:\Python32\Scripts
+pip-3.2.exe install pycrypto</code>
+            </p>
+          </li>
+          <li>Until paramiko3k has been uploaded to PyPI or merged with paramiko, download, unzip and import paramiko3k from github.
+            <p>
+              <code>https://github.com/varialus/paramiko3k/zipball/py3kb
+              <br/>Unzip paramiko3k
+              <br/>Open command prompt.
+              <br/>cd C:\path\to\varialus-paramiko3k-...
+              <br/>python3.2
+              <br/>import paramiko3k</code>
+            </p>
+          </li>
+          <li>After paramiko3k has been uploaded to PyPI or merged with paramiko, which hasn't occurred as of March 2012, use pip to install paramiko3k or paramiko.
+            <p>
+              <code>cd C:\Python32\Scripts
+              <br/>pip-3.2.exe install paramiko3k
+              <br/>pip-3.2 install paramiko3k
+              <br/>python3.2
+              <br/>import paramiko3k</code>
+            </p>
+          </li>
+        </ol>
+      </p>
     
 
     
@@ -140,13 +175,18 @@ import paramiko3k</p>
 
     
       <h2>Authors</h2>
-      <p>Daniel Goertzen (dang@networkintegritysystems.com)<br/>Larry Wright (larrywright@gmail.com)<br/>Robey Pointer (robey@twitter.com)<br/>Shikhar Bhushan (shikhar@schmizz.net)</p>
+      <p>
+        Robey Pointer (robey@twitter.com)
+        <br/>Daniel Goertzen (dang@networkintegritysystems.com)
+        <br/>Larry Wright (larrywright@gmail.com)
+        <br/>Shikhar Bhushan (shikhar@schmizz.net)
+      </p>
     
 
     
       <h2>Contact</h2>
-      <p> (varialus@gmail.com)</p>
-    
+      <p>Varialus (varialus+paramiko3k@gmail.com)</p>
+
 
     <h2>Download</h2>
     <p>
