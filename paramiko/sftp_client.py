@@ -41,13 +41,30 @@ def _to_unicode(s):
     probably doesn't know the filename's encoding.
     """
     try:
-        return s.encode('ascii')
-    except UnicodeError:
+        py3kString = str(s, encoding='ascii')
+        if py3kString.startswith("u'") and py3kString.endswith("'"):
+            py3kString = py3kString[2:-1]
+        # ASCII Unicode String
+        return py3kString
+    except ValueError:
         try:
-            return s.decode('utf-8')
-        except UnicodeError:
-            return s
-
+            py3kString = str(s, encoding='utf-8')
+            if py3kString.startswith("u'") and py3kString.endswith("'"):
+                py3kString = py3kString[2:-1]
+            # UTF-8 Unicode String
+            return py3kString
+        except ValueError:
+            try:
+                py3kString = str(s)
+                if py3kString.startswith("u'") and py3kString.endswith("'"):
+                    py3kString = py3kString[2:-1]
+                # Unknown Unicode String
+                return py3kString
+            except ValueError:
+                if len(s) >= 3 and s[:2] == b"u'" and s[-1:] == b"'":
+                    s = s[2:-1]
+                # 3.x Bytes / 2.x String or Bytes
+                return s
 
 class SFTPClient (BaseSFTP):
     """
